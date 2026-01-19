@@ -1,0 +1,18 @@
+<svg width="314" height="310" viewBox="0 0 314 310" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="-30" y="-30" width="374" height="370"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(15px);clip-path:url(#bgblur_0_757_957_clip_path);height:100%;width:100%"></div></foreignObject><g opacity="0.7" data-figma-bg-blur-radius="30">
+<rect x="1" y="1" width="312" height="308" rx="15" fill="#D9D9D9" fill-opacity="0.5"/>
+<rect x="0.5" y="0.5" width="313" height="309" rx="15.5" stroke="white" stroke-opacity="0.5"/>
+</g>
+<g clip-path="url(#clip1_757_957)">
+<path d="M185.868 139.934H127.289C116.505 139.934 107.763 148.677 107.763 159.461V188.75C107.763 199.534 116.505 208.276 127.289 208.276H185.868C196.653 208.276 205.395 199.534 205.395 188.75V159.461C205.395 148.677 196.653 139.934 185.868 139.934Z" stroke="white" stroke-width="11.75" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M156.579 120.408C161.971 120.408 166.342 116.037 166.342 110.645C166.342 105.253 161.971 100.882 156.579 100.882C151.187 100.882 146.816 105.253 146.816 110.645C146.816 116.037 151.187 120.408 156.579 120.408Z" stroke="white" stroke-width="11.75" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M156.579 120.408V139.934M141.934 178.987V169.224M171.224 169.224V178.987" stroke="white" stroke-width="11.75" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="156.403" cy="111.079" rx="11" ry="10.5" fill="#53E099"/>
+</g>
+<defs>
+<clipPath id="bgblur_0_757_957_clip_path" transform="translate(30 30)"><rect x="1" y="1" width="312" height="308" rx="15"/>
+</clipPath><clipPath id="clip1_757_957">
+<rect width="117.158" height="117.158" fill="white" transform="translate(98 96)"/>
+</clipPath>
+</defs>
+</svg>
