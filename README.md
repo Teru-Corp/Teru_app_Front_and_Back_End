@@ -13,7 +13,7 @@ This project contains both the **Frontend** (Expo/React Native) and the **Backen
 
 ### Prerequisites
 1.  **Node.js** installed.
-2.  **MongoDB** running locally (or configured in .env).
+2.  **MongoDB** installed and running locally. [Download MongoDB Community Server](https://www.mongodb.com/try/download/community).
 3.  **Expo Go** on your phone.
 
 ### Initial Setup (First Time Only)
@@ -26,6 +26,8 @@ This project contains both the **Frontend** (Expo/React Native) and the **Backen
     # (On Windows CMD: copy .env.example .env)
     cd ..
     ```
+    > **Database Tip**: The `.env` file contains `MONGODB_URL`. The default `mongodb://127.0.0.1:27017/teru_db` works automatically if you have local MongoDB running. You don't need to do anything else!
+
 2.  **Frontend Setup**:
     ```bash
     npm install
@@ -48,7 +50,12 @@ This project contains both the **Frontend** (Expo/React Native) and the **Backen
     ssh -R 80:127.0.0.1:3000 serveo.net
     ```
 3.  **Copy the URL** (e.g., `https://algo...serveousercontent.com`).
-4.  Update `api/client.ts` with this new URL.
+4.  Open `api/client.ts` in the `Front-end2` folder.
+5.  Paste the URL into the `API_URL` variable:
+    ```typescript
+    // api/client.ts
+    const API_URL = 'https://YOUR-NEW-URL.serveousercontent.com'; 
+    ```
 
 ### Step 3: Start the Frontend
 1.  Open a terminal in the root folder.
