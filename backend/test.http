@@ -1,0 +1,53 @@
+### INSCRIPTION
+POST http://localhost:3000/inscription
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "mot_de_passe": "123",
+  "nom": "Kevin"
+}
+
+### CONNEXION
+POST http://localhost:3000/connexion
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "mot_de_passe": "123"
+}
+
+### MESSAGE PROTÉGÉ
+POST http://localhost:3000/message
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTM2YjM5NjgxOGYxNmU0YWVmOTI0MDkiLCJpYXQiOjE3NjUyMDk2OTcsImV4cCI6MTc2NTI5NjA5N30.ml7UlQ7MUlageRbWZcwtGdmgkNiwdsMheL4hIzvnYv0
+
+{
+  "texte": "Message lié à mon compte"
+}
+
+### ENREGISTRER UN MOOD
+POST http://localhost:3000/mood
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTM2YjM5NjgxOGYxNmU0YWVmOTI0MDkiLCJpYXQiOjE3NjUzMTc0MTksImV4cCI6MTc2NTQwMzgxOX0._-IcWYuJQtsu0-IqIrfSNxpqV2kF83l-mMQBUjZKmn4
+
+{
+  "x": 0.7,
+  "y": -0.2
+}
+
+### MOOD GLOBAL
+GET http://localhost:3000/mood-global
+
+
+###
+POST http://localhost:3000/message
+Content-Type: application/json
+
+{
+  "texte": "Premier message en base",
+  "utilisateur": "theor"
+}
+
+###
+GET http://localhost:3000/messages

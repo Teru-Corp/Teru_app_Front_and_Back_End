@@ -9,46 +9,54 @@
 
 ## 🚀 How to Start the App (Every Time)
 
-You need to run processes in **3 separate terminals**.
+This project contains both the **Frontend** (Expo/React Native) and the **Backend** (Node.js/Express).
+
+### Prerequisites
+1.  **Node.js** installed.
+2.  **MongoDB** running locally (or configured in .env).
+3.  **Expo Go** on your phone.
+
+### Initial Setup (First Time Only)
+1.  **Backend Setup**:
+    ```bash
+    cd backend
+    npm install
+    # Create your .env file
+    cp .env.example .env
+    # (On Windows CMD: copy .env.example .env)
+    cd ..
+    ```
+2.  **Frontend Setup**:
+    ```bash
+    npm install
+    ```
 
 ### Step 1: Start the Backend
-1.  Open a terminal in the `mon-premier-backend` folder.
-2.  Run the command:
+1.  Open a terminal in the `backend` folder.
+2.  Run:
     ```bash
     node app.js
     ```
-    *You should see: "Connecté à MongoDB" and "Serveur lancé sur http://0.0.0.0:3000"*
+    *Success: "Connecté à MongoDB" & "Serveur lancé sur http://0.0.0.0:3000"*
 
 ### Step 2: Start the Tunnel (Serveo)
-*This allows your phone to reach your computer's local backend.*
+*Required for your phone to see the local backend.*
 
-1.  Open a terminal in the `Front-end2` folder (or anywhere else).
-2.  Run this exact command:
+1.  Open a terminal in the root folder.
+2.  Run:
     ```bash
     ssh -R 80:127.0.0.1:3000 serveo.net
     ```
-3.  If asked "Are you sure you want to continue connecting?", type `yes`.
-4.  **Copy the URL** it gives you. It will look like: 
-    `https://abc123xymz-90-7-241-117.serveousercontent.com`
+3.  **Copy the URL** (e.g., `https://algo...serveousercontent.com`).
+4.  Update `api/client.ts` with this new URL.
 
-    > **⚠️ Important:** Do NOT close this terminal!
-
-### Step 3: Configure Frontend Connection
-1.  Open the file `api/client.ts` in the `Front-end2` folder.
-2.  Paste the URL from Step 2 into the `API_URL` variable:
-    ```typescript
-    const API_URL = 'https://YOUR-NEW-URL.serveousercontent.com';
-    ```
-    *(Make sure to keep the single quotes)*
-
-### Step 4: Start the Frontend
-1.  Open a terminal in the `Front-end2` folder.
-2.  Run the command:
+### Step 3: Start the Frontend
+1.  Open a terminal in the root folder.
+2.  Run:
     ```bash
     npx expo start --tunnel
     ```
-    *(Using `--tunnel` is safer for connectivity).*
-3.  Scan the QR code with **Expo Go** on your iPhone/Android.
+3.  Scan with Expo Go.
 
 ---
 

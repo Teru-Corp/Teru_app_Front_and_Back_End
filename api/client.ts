@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // Use special IP for Android Emulator, otherwise localhost
 // HTTPS necessary for tunnel
-const API_URL = 'https://bf15720b0d1a8da0-90-7-241-177.serveousercontent.com';
+const API_URL = 'https://f1cd38c529bb578c-92-184-106-71.serveousercontent.com';
 
 const client = axios.create({
     baseURL: API_URL,
