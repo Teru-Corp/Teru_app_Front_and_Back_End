@@ -1,12 +1,12 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Animated,
-  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
 
 const STRESS_LEVELS = [
@@ -81,10 +81,11 @@ export default function StressLevelPage() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={require("../../../assets/images/bg_welcome.png")}
+      <LinearGradient
+        colors={['#E99F95', '#F2E8C0', '#A6D8C6']}
         style={styles.background}
-        resizeMode="cover"
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
       />
 
       <Text style={styles.subtitle}>

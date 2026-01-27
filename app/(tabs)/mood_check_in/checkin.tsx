@@ -1,13 +1,13 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
-  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
 
 const emotions = ["Joyful", "Calm", "Anxious", "Sad", "Energetic"];
@@ -59,10 +59,11 @@ export default function WelcomePage() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={require("../../../assets/images/bg_welcome.png")}
+      <LinearGradient
+        colors={['#E99F95', '#F2E8C0', '#A6D8C6']}
         style={styles.background}
-        resizeMode="cover"
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
       />
 
       <Text style={styles.subtitle}>
@@ -132,7 +133,7 @@ export default function WelcomePage() {
         </Pressable>
       </View>
 
-     
+
     </View>
   );
 }

@@ -1,7 +1,7 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
-  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
@@ -49,10 +49,11 @@ export default function Weather() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={require("../../../assets/images/bg_welcome.png")}
+      <LinearGradient
+        colors={['#E99F95', '#F2E8C0', '#A6D8C6']}
         style={styles.bg}
-        resizeMode="cover"
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -71,7 +72,7 @@ export default function Weather() {
             <TeruBotWeather width={300} height={220} />
           </View>
 
-          
+
         </View>
 
         {/* Title (NOT over the circle) */}
@@ -132,7 +133,7 @@ export default function Weather() {
             <ChatIcon width={24} height={24} />
           </Pressable>
         </View>
-      </ImageBackground>
+      </LinearGradient>
     </View>
   );
 }
