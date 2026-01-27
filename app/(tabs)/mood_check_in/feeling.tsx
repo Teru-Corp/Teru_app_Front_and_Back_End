@@ -1,7 +1,8 @@
 import Slider from "@react-native-community/slider";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Animated,
   ImageBackground,
   Pressable,
   StyleSheet,
@@ -20,13 +21,61 @@ export default function ConnectionLevelPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { emotion, energy } = params;
-  const [connection, setConnection] = useState(1); // 0 → 3
+  const [connection, setConnection] = useState(1);
+
+  // animations
+  const prevScale = useRef(new Animated.Value(1)).current;
+  const nextScale = useRef(new Animated.Value(1)).current;
+  const nextTranslateY = useRef(new Animated.Value(0)).current;
 
   const handleNext = () => {
     router.push({
       pathname: "./stress_level",
-      params: { emotion, energy, connection: connection }
+      params: { emotion, energy, connection },
     });
+  };
+
+  const pressInPrev = () => {
+    Animated.spring(prevScale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const pressOutPrev = () => {
+    Animated.spring(prevScale, {
+      toValue: 1,
+      friction: 4,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const pressInNext = () => {
+    Animated.parallel([
+      Animated.spring(nextScale, {
+        toValue: 1.05,
+        useNativeDriver: true,
+      }),
+      Animated.spring(nextTranslateY, {
+        toValue: -6,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const pressOutNext = () => {
+    Animated.parallel([
+      Animated.spring(nextScale, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+      Animated.spring(nextTranslateY, {
+        toValue: 0,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   return (
@@ -37,15 +86,12 @@ export default function ConnectionLevelPage() {
         resizeMode="cover"
       />
 
-      {/* Subtitle */}
       <Text style={styles.subtitle}>
         How is your garden of emotion {"\n"}today?
       </Text>
 
-      {/* Title */}
       <Text style={styles.title}>How connected do you feel?</Text>
 
-      {/* Connection labels */}
       <View style={styles.labelsRow}>
         {CONNECTION_STATES.map((label, index) => (
           <Text
@@ -60,7 +106,6 @@ export default function ConnectionLevelPage() {
         ))}
       </View>
 
-      {/* Slider */}
       <Slider
         style={styles.slider}
         minimumValue={0}
@@ -73,34 +118,63 @@ export default function ConnectionLevelPage() {
         thumbTintColor="#b8d4c6"
       />
 
-      {/* Footer buttons */}
       <View style={styles.footer}>
+        {/* Previous */}
         <Pressable
-          style={styles.previous}
+          onPressIn={pressInPrev}
+          onPressOut={pressOutPrev}
           onPress={() => router.back()}
         >
-          <Text style={styles.previousText}>← Previous</Text>
+          <Animated.View
+            style={[
+              styles.previous,
+              { transform: [{ scale: prevScale }] },
+            ]}
+          >
+            <Text style={styles.previousText}>← Previous</Text>
+          </Animated.View>
         </Pressable>
 
+        {/* Next */}
         <Pressable
-          style={styles.next}
+          onPressIn={pressInNext}
+          onPressOut={pressOutNext}
           onPress={handleNext}
         >
-          <Text style={styles.nextText}>Next →</Text>
+          <Animated.View
+            style={[
+              styles.next,
+              {
+                transform: [
+                  { scale: nextScale },
+                  { translateY: nextTranslateY },
+                ],
+              },
+            ]}
+          >
+            <Text style={styles.nextText}>Next →</Text>
+          </Animated.View>
         </Pressable>
       </View>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  background: { ...StyleSheet.absoluteFillObject },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+
+  background: {
+    ...StyleSheet.absoluteFillObject,
+  },
 
   subtitle: {
     marginTop: 60,
     marginLeft: 30,
     fontSize: 20,
-    color: "rgba(255,255,255,0.5)",
+    color: "#b8d4c6",
   },
 
   title: {
@@ -117,12 +191,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     flexDirection: "row",
     justifyContent: "space-between",
+    flexWrap: "nowrap",
   },
 
   label: {
     fontSize: 14,
     color: "rgba(255,255,255,0.5)",
-    maxWidth: 70,
+    maxWidth: 80,
     textAlign: "center",
   },
 
@@ -148,15 +223,18 @@ const styles = StyleSheet.create({
   previous: {
     width: 170,
     height: 50,
-    backgroundColor: "rgba(217,217,217,0.25)",
     borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "#b8d4c6",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "transparent",
   },
 
   previousText: {
-    color: "#7f7e7e",
+    color: "#ffffff",
     fontSize: 15,
+    fontWeight: "500",
   },
 
   next: {
@@ -166,10 +244,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
   },
 
   nextText: {
     color: "#000",
     fontSize: 15,
+    fontWeight: "500",
   },
 });

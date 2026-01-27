@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import client from "../../../api/client";
 
-import TeruBotWeather from "../../../assets/images/teru_index.svg";
+import TeruBotWeather from "../../../assets/icons/teru_icon 1.svg";
 //import MoodCheck from "../mood_check_in/checkin";
 
 // NAV ICONS (remplace par tes vrais SVG)
@@ -68,13 +68,10 @@ export default function Weather() {
         {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.glassCircle}>
-            <TeruBotWeather width={120} height={120} />
+            <TeruBotWeather width={300} height={220} />
           </View>
 
-          <View style={styles.percentage}>
-            <View style={styles.dot} />
-            <Text style={styles.percentText}>87%</Text>
-          </View>
+          
         </View>
 
         {/* Title (NOT over the circle) */}

@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Animated,
   ImageBackground,
   Pressable,
   StyleSheet,
@@ -21,13 +22,61 @@ export default function StressLevelPage() {
   const { emotion, energy, connection } = params;
   const [selected, setSelected] = useState<string | null>(null);
 
+  // Animations for buttons
+  const prevScale = useRef(new Animated.Value(1)).current;
+  const nextScale = useRef(new Animated.Value(1)).current;
+  const nextTranslateY = useRef(new Animated.Value(0)).current;
+
   const handleFinish = () => {
     if (selected) {
       router.push({
         pathname: "./generation_weather",
-        params: { emotion, energy, connection, stress: selected }
+        params: { emotion, energy, connection, stress: selected },
       });
     }
+  };
+
+  const pressInPrev = () => {
+    Animated.spring(prevScale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const pressOutPrev = () => {
+    Animated.spring(prevScale, {
+      toValue: 1,
+      friction: 4,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const pressInNext = () => {
+    Animated.parallel([
+      Animated.spring(nextScale, {
+        toValue: 1.05,
+        useNativeDriver: true,
+      }),
+      Animated.spring(nextTranslateY, {
+        toValue: -6,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const pressOutNext = () => {
+    Animated.parallel([
+      Animated.spring(nextScale, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+      Animated.spring(nextTranslateY, {
+        toValue: 0,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   return (
@@ -52,17 +101,9 @@ export default function StressLevelPage() {
             <Pressable
               key={level.key}
               onPress={() => setSelected(level.key)}
-              style={[
-                styles.cloud,
-                isActive && styles.cloudActive,
-              ]}
+              style={[styles.cloud, isActive && styles.cloudActive]}
             >
-              <Text
-                style={[
-                  styles.cloudText,
-                  isActive && styles.cloudTextActive,
-                ]}
-              >
+              <Text style={[styles.cloudText, isActive && styles.cloudTextActive]}>
                 {level.label}
               </Text>
             </Pressable>
@@ -71,27 +112,41 @@ export default function StressLevelPage() {
       </View>
 
       <View style={styles.footer}>
+        {/* Previous */}
         <Pressable
-          style={styles.previous}
+          onPressIn={pressInPrev}
+          onPressOut={pressOutPrev}
           onPress={() => router.back()}
         >
-          <Text style={styles.previousText}>← Previous</Text>
+          <Animated.View
+            style={[styles.previous, { transform: [{ scale: prevScale }] }]}
+          >
+            <Text style={styles.previousText}>← Previous</Text>
+          </Animated.View>
         </Pressable>
 
+        {/* Finish */}
         <Pressable
-          style={[
-            styles.next,
-            !selected && { opacity: 0.5 },
-          ]}
-          disabled={!selected}
+          onPressIn={pressInNext}
+          onPressOut={pressOutNext}
           onPress={handleFinish}
+          disabled={!selected}
         >
-          <Text style={styles.nextText}>Finish →</Text>
+          <Animated.View
+            style={[
+              styles.next,
+              { transform: [{ scale: nextScale }, { translateY: nextTranslateY }] },
+              !selected && { opacity: 0.5 },
+            ]}
+          >
+            <Text style={styles.nextText}>Finish →</Text>
+          </Animated.View>
         </Pressable>
       </View>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   background: { ...StyleSheet.absoluteFillObject },
@@ -153,15 +208,18 @@ const styles = StyleSheet.create({
   previous: {
     width: 170,
     height: 50,
-    backgroundColor: "rgba(217,217,217,0.25)",
     borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "#b8d4c6",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "transparent",
   },
 
   previousText: {
-    color: "#7f7e7e",
+    color: "#ffffff",
     fontSize: 15,
+    fontWeight: "500",
   },
 
   next: {
@@ -171,10 +229,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
   },
 
   nextText: {
     color: "#000",
     fontSize: 15,
+    fontWeight: "500",
   },
 });
