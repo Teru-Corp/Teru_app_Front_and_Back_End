@@ -13,7 +13,7 @@ import {
   View
 } from "react-native";
 import client from "../../../api/client";
-import TeruIcon from "../../../assets/icons/teru_icon 1.svg";
+import TeruIcon from "../../../assets/icons/icon_teru_face.svg";
 
 // Nav Icons
 import ChatIcon from "../../../assets/icons/chat_icon_bis.svg";

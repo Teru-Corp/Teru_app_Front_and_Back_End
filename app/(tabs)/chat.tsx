@@ -1,5 +1,4 @@
 import client from '@/api/client';
-import TeruIcon from "@/assets/icons/teru_icon_1.svg";
 import { useAuth } from '@/context/AuthContext';
 import { useCommunityWeather } from '@/hooks/useCommunityWeather';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +20,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import TeruIcon from "../../assets/icons/icon_teru_face.svg";
 
 import ChatIcon from "../../assets/icons/chat_icon_bis.svg";
 import HomeIcon from "../../assets/icons/home.svg";

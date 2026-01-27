@@ -1,3 +1,4 @@
+
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useRef } from "react";
@@ -9,9 +10,9 @@ import {
   View
 } from "react-native";
 
-import TeruIcon from "@/assets/icons/teru_icon_1.svg";
 import ChatIcon from "../../../assets/icons/chat_icon_bis.svg";
 import HomeIcon from "../../../assets/icons/home.svg";
+import TeruIcon from "../../../assets/icons/icon_teru_face.svg";
 import MoodIcon from "../../../assets/icons/mood.svg";
 import WeatherIcon from "../../../assets/icons/weather.svg";
 

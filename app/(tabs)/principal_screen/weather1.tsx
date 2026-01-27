@@ -10,9 +10,8 @@ import {
 } from "react-native";
 import client from "../../../api/client";
 
-import TeruBotWeather from "../../../assets/icons/teru_icon_1.svg";
+import TeruBotWeather from "../../../assets/icons/icon_teru_face.svg";
 
-// NAV ICONS (remplace par tes vrais SVG)
 import ChatIcon from "../../../assets/icons/chat_icon_bis.svg";
 import HomeIcon from "../../../assets/icons/home.svg";
 import MoodIcon from "../../../assets/icons/mood.svg";
@@ -83,8 +82,9 @@ export default function Weather() {
             <View style={[styles.glassCircle, { overflow: 'hidden' }]}>
               <TeruBotWeather width="100%" height="100%" />
             </View>
-            <View style={styles.feelingPill}>
-              <Text style={styles.bottomText}>{personalWeather.label}</Text>
+            {/* Teru's Speech Bubble */}
+            <View style={styles.feelingBubble}>
+              <Text style={styles.bubbleText}>{personalWeather.label}</Text>
             </View>
           </View>
         </View>
@@ -127,6 +127,8 @@ export default function Weather() {
             <Text style={styles.actionText}>Community</Text>
           </Pressable>
         </View>
+
+        {/* Bottom pill removed */}
 
         {/* Bottom pill removed */}
 
@@ -220,8 +222,8 @@ const styles = StyleSheet.create({
   },
 
   glassCircle: {
-    width: 260,
-    height: 260,
+    width: 200,
+    height: 210,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -263,6 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.5)",
     borderRadius: 30,
     padding: 24,
+    marginTop: 30,
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "white",
@@ -307,26 +310,35 @@ const styles = StyleSheet.create({
   },
 
   logoWrapper: {
-    width: 260,
-    height: 260,
+    width: 220,
+    height: 220,
     position: 'relative',
   },
-  feelingPill: {
+  feelingBubble: {
     position: "absolute",
-    top: 0,
-    right: -20, // Negative to hang off slightly, or 0 to be flush
-    backgroundColor: "white",
+    top: 20,
+    right: -40,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    zIndex: 10,
-    elevation: 5,
+    paddingVertical: 10,
+    borderRadius: 25,
+    borderBottomLeftRadius: 2, // Speech bubble tail effect
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    elevation: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    minWidth: 100,
+    alignItems: 'center',
+    zIndex: 100,
   },
-
+  bubbleText: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "700",
+  },
   bottomText: {
     fontSize: 15,
     color: "#000",

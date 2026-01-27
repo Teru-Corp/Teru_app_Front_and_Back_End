@@ -14,7 +14,10 @@ import {
     View,
 } from "react-native";
 import client from "../../api/client";
-import TeruIcon from "../../assets/icons/teru_icon_1.svg";
+import TeruIcon from "../../assets/icons/icon_teru_face.svg";
+import LivingLightning from "../../components/living_elements/LivingLightning";
+import LivingSun from "../../components/living_elements/LivingSun";
+import OrganicParticles from "../../components/living_elements/OrganicParticles";
 
 // Nav Icons
 import ChatIcon from "../../assets/icons/chat_icon_bis.svg";
@@ -126,10 +129,21 @@ const EtherealBloom = ({ color, x, scale }: { color: string; x: number; scale: n
     );
 };
 
-const MessageCloud = ({ text }: { text: string }) => {
+const MessageCloud = ({ text, index, total }: { text: string; index: number; total: number }) => {
     const drift = useRef(new Animated.Value(0)).current;
+
+    // Slot System: Divide the screen vertically
+    // Use the middle 60% of the screen (from 20% to 80%)
+    // Slot System: Divide the bottom area of the screen
+    // Target the lower third, avoiding the absolute bottom (nav/button)
+    const safeTop = height * 0.55; // Start below the middle
+    const safeHeight = height * 0.25; // Use 25% of height
+    const slotSize = safeHeight / 5; // Fixed 5 slots
+
+    // Calculate precise Y based on index to prevent overlap
+    const startY = safeTop + (index * slotSize) + (Math.random() * (slotSize * 0.5));
+
     const startX = useRef(Math.random() * (width - 150)).current;
-    const startY = useRef(height * 0.15 + Math.random() * (height * 0.35)).current;
 
     useEffect(() => {
         Animated.loop(
@@ -147,8 +161,9 @@ const MessageCloud = ({ text }: { text: string }) => {
                 {
                     left: startX,
                     top: startY,
-                    transform: [{ translateY: drift.interpolate({ inputRange: [0, 1], outputRange: [-20, 20] }) }, { translateX: drift.interpolate({ inputRange: [0, 1], outputRange: [-10, 10] }) }],
+                    transform: [{ translateY: drift.interpolate({ inputRange: [0, 1], outputRange: [-10, 10] }) }, { translateX: drift.interpolate({ inputRange: [0, 1], outputRange: [-5, 5] }) }],
                     opacity: drift.interpolate({ inputRange: [0, 0.1, 0.9, 1], outputRange: [0, 0.9, 0.9, 0] }),
+                    zIndex: 100 + index
                 },
             ]}
         >
@@ -196,7 +211,7 @@ export default function CommunityGarden() {
     const fetchMessages = async () => {
         try {
             const res = await client.get('/messages');
-            setMessages(res.data.slice(0, 10));
+            setMessages(res.data.slice(0, 5));
             setMsgLoading(false);
         } catch (e) {
             console.error("Garden messages error", e);
@@ -207,28 +222,71 @@ export default function CommunityGarden() {
     const renderLayers = () => {
         if (!communityData) return null;
         const els = [];
-        const { condition } = communityData;
+        const { condition, teruFeeling } = communityData;
 
-        if (condition === "Sunny") {
-            els.push(<SunRay key="ray" color="#fff" />);
-        } else {
-            els.push(<MistLayer key="mist1" color="rgba(255,255,255,0.05)" duration={40000} />);
-            els.push(<MistLayer key="mist2" color="rgba(0,0,0,0.05)" duration={60000} />);
-        }
-
-        if (condition === "Rainy" || condition === "Stormy") {
-            for (let i = 0; i < 30; i++) els.push(<RainDrop key={`rain-${i}`} delay={i * 100} />);
-        }
-
+        // Base Atmosphere (always present, scales with hooks)
         const density = Math.min((communityData.count || 0) * 2, 40);
-        for (let i = 0; i < density; i++) {
-            const mood = Object.keys(MOOD_COLORS)[i % 5];
-            els.push(<Petal key={`p-${i}`} color={MOOD_COLORS[mood]} delay={i * 200} />);
+
+        // --- 1. SKY / SUN ---
+        if (condition === "Sunny" || teruFeeling === "Joyful" || teruFeeling === "Energetic") {
+            // Living Sun (Centered as requested)
+            els.push(
+                <View key="sun" style={{ position: 'absolute', top: (height - (width * 0.8)) / 2, left: (width - width * 0.8) / 2, zIndex: -1 }}>
+                    <LivingSun
+                        size={width * 0.8}
+                        color={teruFeeling === "Energetic" ? "#FF4500" : "#FFD700"}
+                    />
+                </View>
+            );
         }
 
-        messages.forEach((m, idx) => {
-            if (m.texte) els.push(<MessageCloud key={`msg-${idx}`} text={m.texte} />);
-        });
+        // --- 2. STORM / LIGHTNING ---
+        if (condition === "Stormy" || teruFeeling === "Angry" || teruFeeling === "Anxious") {
+            // Lightning strikes randomly
+            els.push(
+                <LivingLightning
+                    key="lightning"
+                    intensity={teruFeeling === "Angry" ? 1 : 0.6}
+                    color={teruFeeling === "Anxious" ? "#E0FFFF" : "#FFD700"} // Cold blue or Shock yellow
+                />
+            );
+            // Stormy Rain (Reduced density)
+            els.push(<OrganicParticles key="storm-rain" type="Rain" count={100} color="rgba(255, 255, 255, 0.5)" />);
+        }
+
+        // --- 3. PARTICLES / ORGANIC LIFE ---
+        if (teruFeeling === "Sad" || condition === "Rainy") {
+            // Rain / Tears
+            els.push(<OrganicParticles key="rain" type="Rain" count={80} color="rgba(255, 255, 255, 0.4)" />);
+        } else if (teruFeeling === "Calm") {
+            // Fireflies (Reduced)
+            els.push(<OrganicParticles key="firefly" type="Firefly" count={20} color="#90EE90" />);
+
+            // Living Field of Blooms
+            els.push(<EtherealBloom key="bloom1" color="#4CAF50" x={width * 0.1} scale={0.6} />);
+            els.push(<EtherealBloom key="bloom2" color="#8BC34A" x={width * 0.3} scale={0.8} />);
+            els.push(<EtherealBloom key="bloom3" color="#2E7D32" x={width * 0.6} scale={0.7} />);
+            els.push(<EtherealBloom key="bloom4" color="#689F38" x={width * 0.85} scale={0.5} />);
+
+            // Drifting Organic Petals (Greenish/Leaf-like)
+            for (let i = 0; i < 4; i++) {
+                els.push(<Petal key={`calm-petal-${i}`} color="rgba(144, 238, 144, 0.4)" delay={i * 1800} />);
+            }
+
+            // Low-lying Mist
+            els.push(<MistLayer key="mist1" color="rgba(255, 255, 255, 0.05)" duration={25000} />);
+            els.push(<MistLayer key="mist2" color="rgba(144, 238, 144, 0.03)" duration={35000} />);
+        } else if (teruFeeling === "Joyful" || teruFeeling === "Energetic" || condition === "Sunny") {
+            // Pollen / Petals (Reduced)
+            els.push(<OrganicParticles key="pollen" type="Pollen" count={5} color="#FFFACD" />);
+            // Joyful Sparks (White/Gold Fireflies) - Much more subtle
+            els.push(<OrganicParticles key="joy-sparks" type="Firefly" count={25} color="#FFFFFF" />);
+        } else if (teruFeeling === "Default") {
+            // Gentle atmosphere
+            els.push(<OrganicParticles key="firefly-def" type="Firefly" count={8} color="#FFF" />);
+        }
+
+
 
         return els;
     };
@@ -238,7 +296,7 @@ export default function CommunityGarden() {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-            <LinearGradient colors={communityData?.colors || ['#1a1a2e', '#16213e', '#0f3460']} style={styles.background} />
+            <LinearGradient colors={(communityData?.colors as any) || ['#1a1a2e', '#16213e', '#0f3460']} style={styles.background} />
 
             <View style={StyleSheet.absoluteFill}>
                 {renderLayers()}
@@ -246,31 +304,39 @@ export default function CommunityGarden() {
 
             <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>The Garden</Text>
-                    <View style={styles.tempChip}>
-                        <Text style={styles.tempText}>{communityData?.temperature}°C</Text>
-                        <View style={styles.statusIndicator} />
+                    <View>
+                        <Text style={styles.title}>The Garden</Text>
+                        <Text style={styles.subtitle}>Welcome to the emotional weather of the community</Text>
                     </View>
                 </View>
 
-                <View style={{ flex: 1 }} />
-
-                <View style={styles.minimalStats}>
-                    <TeruIcon width={40} height={40} opacity={0.6} />
-                    <Text style={styles.statsDesc}>
-                        {communityData?.teruFeeling || `A collective mood of ${communityData?.condition.toLowerCase()}`}
-                    </Text>
-                    <View style={styles.presenceDots}>
-                        {[...Array(Math.min(communityData?.count || 0, 5))].map((_, i) => (
-                            <View key={i} style={styles.dot} />
-                        ))}
-                        {(communityData?.count || 0) > 5 && <Text style={styles.plusText}>+</Text>}
+                {/* Central Temperature Display - Centered by Flex as requested */}
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={styles.weatherContainer}>
+                        <Text style={styles.mainTemp}>{communityData?.temperature}°C</Text>
+                        <Text style={styles.mainCondition}>{communityData?.condition}</Text>
                     </View>
                 </View>
 
-                <Pressable style={styles.actionBtn} onPress={() => router.push("/(tabs)/chat")}>
-                    <Text style={styles.actionText}>Enter the conversation</Text>
-                </Pressable>
+                {/* Bottom Section: Stats & Action */}
+                <View style={{ marginBottom: 40, width: '100%' }}>
+                    <View style={styles.minimalStats}>
+                        <TeruIcon width={40} height={40} opacity={0.6} />
+                        <Text style={styles.statsDesc}>
+                            {communityData?.teruFeeling || `A collective mood of ${communityData?.condition.toLowerCase()}`}
+                        </Text>
+                        <View style={styles.presenceDots}>
+                            {[...Array(Math.min(communityData?.count || 0, 5))].map((_, i) => (
+                                <View key={i} style={styles.dot} />
+                            ))}
+                            {(communityData?.count || 0) > 5 && <Text style={styles.plusText}>+</Text>}
+                        </View>
+                    </View>
+
+                    <Pressable style={styles.actionBtn} onPress={() => router.push("/(tabs)/chat")}>
+                        <Text style={styles.actionText}>Enter conversation</Text>
+                    </Pressable>
+                </View>
             </Animated.View>
 
             {/* Bottom Navigation */}
@@ -299,8 +365,10 @@ const styles = StyleSheet.create({
 
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     title: { fontSize: 28, fontWeight: '900', color: '#fff', letterSpacing: -1 },
-    tempChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 },
-    tempText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+    subtitle: { fontSize: 18, color: '#fff', marginTop: 10, fontWeight: '600', opacity: 0.9 },
+    weatherContainer: { alignItems: 'center', justifyContent: 'center', marginTop: 40 },
+    mainTemp: { fontSize: 86, fontWeight: '200', color: '#fff', textShadowColor: 'rgba(0,0,0,0.2)', textShadowRadius: 10 },
+    mainCondition: { fontSize: 24, fontWeight: '500', color: 'rgba(255,255,255,0.9)', marginTop: -5, letterSpacing: 1 },
     statusIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#98FB98', marginLeft: 10, shadowColor: '#fff', shadowRadius: 5, shadowOpacity: 0.5 },
 
     sunRay: { position: 'absolute', top: -height * 0.2, left: -width * 0.3, width: 250, height: height * 2, borderRadius: 100 },
@@ -324,8 +392,8 @@ const styles = StyleSheet.create({
     dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#fff', opacity: 0.4 },
     plusText: { color: '#fff', fontSize: 12, opacity: 0.6 },
 
-    actionBtn: { backgroundColor: '#fff', height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 15, elevation: 8 },
-    actionText: { color: '#1a1a2e', fontSize: 16, fontWeight: '800' },
+    actionBtn: { backgroundColor: '#fff', height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 15, elevation: 8, marginHorizontal: 20 },
+    actionText: { color: '#000', fontSize: 18, fontWeight: '700' },
 
     navBar: {
         position: 'absolute',
