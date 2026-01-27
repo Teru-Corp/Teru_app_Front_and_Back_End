@@ -16,7 +16,7 @@ import client from "../../../api/client";
 import TeruIcon from "../../../assets/icons/teru_icon 1.svg";
 
 // Nav Icons
-import ChatIcon from "../../../assets/icons/chat.svg";
+import ChatIcon from "../../../assets/icons/chat_icon_bis.svg";
 import HomeIcon from "../../../assets/icons/home.svg";
 import MoodIcon from "../../../assets/icons/mood.svg";
 import WeatherIcon from "../../../assets/icons/weather.svg";
@@ -311,7 +311,7 @@ export default function EmotionalGardenWeather() {
           <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
         </Pressable>
         <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>
-          <ChatIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+          <ChatIcon width={28} height={28} stroke="white" strokeWidth={1.5} fill="none" />
         </Pressable>
       </View>
     </View>

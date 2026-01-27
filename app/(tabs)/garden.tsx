@@ -17,7 +17,7 @@ import client from "../../api/client";
 import TeruIcon from "../../assets/icons/teru_icon_1.svg";
 
 // Nav Icons
-import ChatIcon from "../../assets/icons/chat.svg";
+import ChatIcon from "../../assets/icons/chat_icon_bis.svg";
 import HomeIcon from "../../assets/icons/home.svg";
 import MoodIcon from "../../assets/icons/mood.svg";
 import GardenIcon from "../../assets/icons/weather.svg";
@@ -273,13 +273,20 @@ export default function CommunityGarden() {
                 </Pressable>
             </Animated.View>
 
-            <View style={styles.navWrap}>
-                <View style={styles.glassNav}>
-                    <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")}><HomeIcon width={22} height={22} fill="#fff" opacity={0.5} /></Pressable>
-                    <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")}><MoodIcon width={22} height={22} fill="#fff" opacity={0.5} /></Pressable>
-                    <Pressable><GardenIcon width={22} height={22} fill="#fff" /></Pressable>
-                    <Pressable onPress={() => router.replace("/(tabs)/chat")}><ChatIcon width={22} height={22} fill="#fff" opacity={0.5} /></Pressable>
-                </View>
+            {/* Bottom Navigation */}
+            <View style={styles.navBar}>
+                <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15}>
+                    <HomeIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+                </Pressable>
+                <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
+                    <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+                </Pressable>
+                <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
+                    <GardenIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+                </Pressable>
+                <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>
+                    <ChatIcon width={28} height={28} stroke="white" strokeWidth={1.5} fill="none" />
+                </Pressable>
             </View>
         </View>
     );
@@ -320,7 +327,18 @@ const styles = StyleSheet.create({
     actionBtn: { backgroundColor: '#fff', height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 15, elevation: 8 },
     actionText: { color: '#1a1a2e', fontSize: 16, fontWeight: '800' },
 
-    navWrap: { position: 'absolute', bottom: 35, left: 0, right: 0, alignItems: 'center' },
-    glassNav: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.4)', paddingVertical: 15, paddingHorizontal: 35, borderRadius: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', gap: 40 },
+    navBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 80,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingBottom: 20, // for bottom safe area approximation
+        backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
+        zIndex: 100, // Ensure high zIndex for clickability
+    },
 });
 

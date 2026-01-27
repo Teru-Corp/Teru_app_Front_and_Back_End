@@ -13,6 +13,7 @@ import {
     FlatList,
     KeyboardAvoidingView,
     Platform,
+    Pressable,
     SafeAreaView,
     StyleSheet,
     Text,
@@ -20,6 +21,11 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+
+import ChatIcon from "../../assets/icons/chat_icon_bis.svg";
+import HomeIcon from "../../assets/icons/home.svg";
+import MoodIcon from "../../assets/icons/mood.svg";
+import WeatherIcon from "../../assets/icons/weather.svg";
 
 const { width, height } = Dimensions.get('window');
 
@@ -175,7 +181,23 @@ export default function ChatScreen() {
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+
+            {/* Bottom Navigation */}
+            <View style={styles.navBar}>
+                <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15}>
+                    <HomeIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+                </Pressable>
+                <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
+                    <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+                </Pressable>
+                <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
+                    <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+                </Pressable>
+                <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>
+                    <ChatIcon width={28} height={28} stroke="white" strokeWidth={1.5} fill="none" />
+                </Pressable>
+            </View>
+        </SafeAreaView >
     );
 }
 
@@ -276,9 +298,9 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         padding: 20,
-        paddingBottom: Platform.OS === 'ios' ? 40 : 20,
         backgroundColor: 'transparent',
         alignItems: 'center',
+        paddingBottom: 90, // Lift up for nav bar
     },
     input: {
         flex: 1,
@@ -306,6 +328,19 @@ const styles = StyleSheet.create({
         color: '#1a1a2e',
         fontWeight: '900',
         fontSize: 15,
+    },
+    navBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 80,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingBottom: 20, // for bottom safe area approximation
+        backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
+        zIndex: 100, // Ensure high zIndex for clickability
     },
 });
 
