@@ -1,9 +1,10 @@
+
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Animated,
   Dimensions,
-  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
@@ -51,7 +52,7 @@ export default function EmotionalGardenWeather() {
         setSaved(true);
       } catch (error: any) {
         console.error("Failed to save mood", error);
-        alert(`Failed to save mood: ${error.response?.data?.error || error.message}`);
+        alert(`Failed to save mood: ${error.response?.data?.error || error.message} `);
       }
     };
     saveMood();
@@ -98,9 +99,11 @@ export default function EmotionalGardenWeather() {
   return (
     <View style={styles.container}>
       {/* Sky background */}
-      <ImageBackground
-        source={require("../../../assets/images/bg_welcome.png")} // optional dreamy background
+      <LinearGradient
+        colors={['#E99F95', '#F2E8C0', '#A6D8C6']}
         style={styles.background}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
       />
 
       {/* Sun */}
@@ -148,7 +151,7 @@ export default function EmotionalGardenWeather() {
 
       {saved && <Text style={styles.savedText}>Check-in Saved!</Text>}
 
-      <Pressable style={styles.homeButton} onPress={() => router.replace("/(tabs)")}>
+      <Pressable style={styles.homeButton} onPress={() => router.replace("/(tabs)/principal_screen/weather1")}>
         <Text style={styles.homeButtonText}>Return Home</Text>
       </Pressable>
     </View>
