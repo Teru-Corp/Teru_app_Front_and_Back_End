@@ -35,9 +35,25 @@ function RootLayoutNav() {
     return <Slot />; // Or a loading spinner
   }
 
+  const CustomDefaultTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: '#E99F95',
+    },
+  };
+
+  const CustomDarkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      background: '#182848', // Match a darker tone for dark mode if requested, but using theme base
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+    <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomDefaultTheme}>
+      <Stack screenOptions={{ contentStyle: { backgroundColor: '#E99F95' } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />

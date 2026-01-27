@@ -149,7 +149,7 @@ export default function StressLevelPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#E99F95" },
   background: { ...StyleSheet.absoluteFillObject },
 
   subtitle: {

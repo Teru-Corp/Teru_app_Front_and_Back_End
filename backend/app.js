@@ -255,6 +255,50 @@ app.get('/weather-stats', verifierToken, async (req, res) => {
   }
 });
 
+// Community Weather Stats (All users)
+app.get('/community-weather', async (req, res) => {
+  try {
+    const moods = await Mood.find().sort({ date: -1 }).limit(100);
+
+    if (moods.length === 0) {
+      return res.json({ temperature: 20, condition: 'Sunny', label: 'Quiet', count: 0 });
+    }
+
+    let totalEnergy = 0;
+    let counts = { Joyful: 0, Energetic: 0, Calm: 0, Anxious: 0, Sad: 0 };
+    let stressCounts = { peaceful: 0, tense: 0, stressed: 0, overwhelmed: 0 };
+
+    moods.forEach(m => {
+      totalEnergy += (m.energy || 0.5);
+      if (counts[m.emotion] !== undefined) counts[m.emotion]++;
+      if (stressCounts[m.stress] !== undefined) stressCounts[m.stress]++;
+    });
+
+    const avgEnergy = totalEnergy / moods.length;
+    const temperature = Math.round(10 + (avgEnergy * 27));
+
+    // Determine Community Condition
+    const mostCommonEmotion = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+    const mostCommonStress = Object.keys(stressCounts).reduce((a, b) => stressCounts[a] > stressCounts[b] ? a : b);
+
+    let condition = 'Cloudy';
+    if (['stressed', 'overwhelmed'].includes(mostCommonStress)) condition = 'Stormy';
+    else if (['Sad', 'Anxious'].includes(mostCommonEmotion)) condition = 'Rainy';
+    else if (['Joyful', 'Energetic'].includes(mostCommonEmotion)) condition = 'Sunny';
+
+    res.json({
+      temperature,
+      condition,
+      emotion: mostCommonEmotion,
+      count: moods.length,
+      distribution: counts
+    });
+  } catch (err) {
+    console.error('Erreur community-weather :', err);
+    res.status(500).json({ error: 'Erreur serveur pour community-weather' });
+  }
+});
+
 app.get('/mood-global', async (req, res) => {
   try {
     const moods = await Mood.find();

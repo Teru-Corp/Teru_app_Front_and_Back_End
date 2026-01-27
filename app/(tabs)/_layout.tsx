@@ -6,6 +6,7 @@ export default function Layout() {
       screenOptions={{
         headerShown: false,
         animation: "fade",
+        contentStyle: { backgroundColor: '#E99F95' }
       }}
     />
   );

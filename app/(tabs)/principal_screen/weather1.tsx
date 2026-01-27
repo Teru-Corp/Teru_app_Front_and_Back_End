@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import client from "../../../api/client";
 
-import TeruBotWeather from "../../../assets/icons/teru_icon 1.svg";
+import TeruBotWeather from "../../../assets/icons/teru_icon_1.svg";
 //import MoodCheck from "../mood_check_in/checkin";
 
 // NAV ICONS (remplace par tes vrais SVG)
@@ -68,8 +68,8 @@ export default function Weather() {
 
         {/* Hero */}
         <View style={styles.hero}>
-          <View style={styles.glassCircle}>
-            <TeruBotWeather width={300} height={220} />
+          <View style={[styles.glassCircle, { overflow: 'hidden' }]}>
+            <TeruBotWeather width="100%" height="100%" />
           </View>
 
 
@@ -126,7 +126,7 @@ export default function Weather() {
           <Pressable onPress={() => router.push("/(tabs)/mood_check_in/checkin")} hitSlop={10}>
             <MoodIcon width={24} height={24} />
           </Pressable>
-          <Pressable onPress={() => router.push("/(tabs)/history")} hitSlop={10}>
+          <Pressable onPress={() => router.push("/(tabs)/garden")} hitSlop={10}>
             <WeatherIcon width={24} height={24} />
           </Pressable>
           <Pressable onPress={() => router.push("/(tabs)/chat")} hitSlop={10}>
@@ -140,7 +140,7 @@ export default function Weather() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#E99F95", // Match the gradient start color to prevent flash
   },
 
   mainCardPressed: {
@@ -191,12 +191,8 @@ const styles = StyleSheet.create({
   },
 
   glassCircle: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: "rgba(217,217,217,0.5)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.5)",
+    width: 260,
+    height: 260,
     justifyContent: "center",
     alignItems: "center",
   },

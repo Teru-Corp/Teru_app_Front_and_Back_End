@@ -1,48 +1,117 @@
-
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
+  Easing,
   Pressable,
   StyleSheet,
   Text,
   View
 } from "react-native";
 import client from "../../../api/client";
-import WeatherIntro from "../../../assets/images/weather_intro.svg";
+import TeruIcon from "../../../assets/icons/teru_icon 1.svg";
+
+// Nav Icons
+import ChatIcon from "../../../assets/icons/chat.svg";
+import HomeIcon from "../../../assets/icons/home.svg";
+import MoodIcon from "../../../assets/icons/mood.svg";
+import WeatherIcon from "../../../assets/icons/weather.svg";
 
 const { width, height } = Dimensions.get("window");
 
-const EMOTION_MAP: Record<string, number> = {
-  "Joyful": 1,
-  "Calm": 0.5,
-  "Energetic": 0.5,
-  "Anxious": -0.5,
-  "Sad": -1
+// Simple rain drop component
+interface RainDropProps {
+  delay: number;
+  duration: number;
+  startX: number;
+}
+
+const RainDrop = ({ delay, duration, startX }: RainDropProps) => {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: duration,
+        delay: delay,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const translateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-50, height],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.rainDrop,
+        {
+          left: startX,
+          transform: [{ translateY }],
+        },
+      ]}
+    />
+  );
 };
+
+// Cloud Shape Component
+const CloudShape = ({ children }: { children: React.ReactNode }) => (
+  <View style={styles.cloudContainer}>
+    <View style={styles.cloudBubbleLeft} />
+    <View style={styles.cloudBubbleRight} />
+    <View style={styles.cloudBubbleTop} />
+    <View style={styles.cloudBase}>
+      {children}
+    </View>
+  </View>
+);
+
+// Mountain Component
+const Mountain = ({ style }: { style: any }) => (
+  <View style={[styles.mountain, style]} />
+);
 
 export default function EmotionalGardenWeather() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  // Parse params (they come as strings)
+  // Parse params
   const emotion = params.emotion as string || "Calm";
   const energy = parseFloat(params.energy as string) || 0.5;
   const connection = parseFloat(params.connection as string) || 1;
   const stress = params.stress as string || "peaceful";
 
-  const [sunAnim] = useState(new Animated.Value(0));
-  const [cloudAnim] = useState(new Animated.Value(0));
-  const [flowerAnim] = useState(new Animated.Value(0));
   const [saved, setSaved] = useState(false);
+
+  // Animation values
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [floatAnim] = useState(new Animated.Value(0));
+  const [flowerAnim] = useState(new Animated.Value(0));
+
+  // Determine weather condition
+  let weatherCondition = "Cloudy";
+  if (["stressed", "overwhelmed"].includes(stress)) {
+    weatherCondition = "Stormy";
+  } else if (["Sad", "Anxious"].includes(emotion)) {
+    weatherCondition = "Rainy";
+  } else if (["Joyful", "Energetic"].includes(emotion)) {
+    weatherCondition = "Sunny";
+  }
+
+  // Calculate "Temperature" based on energy (0-1) -> 10-37°
+  const temperature = Math.round(10 + (energy * 27));
 
   useEffect(() => {
     // Save to backend
     const saveMood = async () => {
       try {
-        // Send the raw data to the backend
         await client.post('/mood', {
           emotion,
           energy,
@@ -52,184 +121,401 @@ export default function EmotionalGardenWeather() {
         setSaved(true);
       } catch (error: any) {
         console.error("Failed to save mood", error);
-        alert(`Failed to save mood: ${error.response?.data?.error || error.message} `);
       }
     };
     saveMood();
   }, [emotion, energy]);
 
   useEffect(() => {
-    // Sun gently moves up and down
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(sunAnim, { toValue: 10, duration: 2000, useNativeDriver: true }),
-        Animated.timing(sunAnim, { toValue: 0, duration: 2000, useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Clouds drift horizontally
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(cloudAnim, { toValue: width * 0.6, duration: 8000, useNativeDriver: true }),
-        Animated.timing(cloudAnim, { toValue: 0, duration: 8000, useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Flower blooming based on energy + connection
-    Animated.timing(flowerAnim, {
-      toValue: energy + connection / 4, // 0-1
-      duration: 1500,
+    // Fade in
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
       useNativeDriver: true,
     }).start();
+
+    // Float animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, { toValue: -10, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(floatAnim, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Flower Growth Animation
+    Animated.spring(flowerAnim, {
+      toValue: 1,
+      friction: 6,
+      tension: 40,
+      useNativeDriver: true
+    }).start();
+
   }, []);
 
-  // Calculate bloom scale
+  // Visual variants
   const bloomScale = flowerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.5, 1.3],
+    outputRange: [0, 0.5 + (energy * 0.8)], // Scale based on energy
   });
 
-  // Determine sun intensity color
-  const sunColor = emotion === "Joyful" ? "#FFD700" : "#FFE066";
+  // Rain generator
+  const renderRain = () => {
+    if (weatherCondition !== "Rainy" && weatherCondition !== "Stormy") return null;
+    const drops = [];
+    for (let i = 0; i < 20; i++) {
+      drops.push(
+        <RainDrop
+          key={i}
+          startX={Math.random() * width}
+          duration={800 + Math.random() * 800}
+          delay={Math.random() * 1000}
+        />
+      );
+    }
+    return <View style={styles.rainContainer}>{drops}</View>;
+  };
 
-  // Determine cloud opacity based on stress (stress isn't a number in params, map string)
-  const stressLevel = ["peaceful", "tense", "stressed", "overwhelmed"].indexOf(stress);
-  const cloudOpacity = 0.2 + (stressLevel / 3) * 0.5; // 0.2-0.7
+  const getGradientColors = (): [string, string, ...string[]] => {
+    switch (weatherCondition) {
+      case "Sunny": return ['#FF9A9E', '#FECFEF', '#F6D365'];
+      case "Rainy": return ['#BDC3C7', '#2C3E50'];
+      case "Stormy": return ['#1F1C2C', '#928DAB'];
+      default: return ['#E99F95', '#F2E8C0', '#A6D8C6'];
+    }
+  };
+
+  const getAffirmation = () => {
+    switch (weatherCondition) {
+      case "Sunny": return "Radiant energy flows through you";
+      case "Rainy": return "Behind clouds, the sun still shines";
+      case "Stormy": return "Roots grow deeper in the storm";
+      default: return "Peace relies in the present moment";
+    }
+  };
+
+  const isSunny = weatherCondition === "Sunny";
 
   return (
     <View style={styles.container}>
-      {/* Sky background */}
       <LinearGradient
-        colors={['#E99F95', '#F2E8C0', '#A6D8C6']}
+        colors={getGradientColors()}
         style={styles.background}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
       />
 
-      {/* Sun */}
-      <Animated.View
-        style={[
-          styles.sun,
-          { backgroundColor: sunColor, transform: [{ translateY: sunAnim }] },
-        ]}
-      />
+      {/* Landscape - Mountains */}
+      <View style={styles.landscapeContainer}>
+        <Mountain style={styles.mountainBack} />
+        <Mountain style={styles.mountainFront} />
+      </View>
 
-      {/* Clouds */}
-      <Animated.View
-        style={[
-          styles.cloud,
-          {
-            opacity: cloudOpacity,
-            transform: [{ translateX: cloudAnim }],
-          },
-        ]}
-      />
+      {renderRain()}
 
-      <Animated.View
-        style={[
-          styles.cloud,
-          { opacity: cloudOpacity * 0.8, top: 120, transform: [{ translateX: Animated.add(cloudAnim, 50) }] },
-        ]}
-      />
+      {/* Growing Flower in the Garden */}
+      <Animated.View style={[styles.flowerContainer, { transform: [{ scale: bloomScale }] }]}>
+        {/* Using WeatherIntro as a flower placeholder, could be replaced by specific flower assets */}
 
-      {/* Flower */}
-      <Animated.View
-        style={[
-          styles.flower,
-          { transform: [{ scale: bloomScale }] },
-        ]}
-      >
-        <WeatherIntro
-          width={100}
-          height={100}
-          style={styles.flowerImg}
-        />
       </Animated.View>
 
-      {/* Optional overlay text */}
-      <Text style={styles.title}>Your Emotional Garden Today</Text>
+      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+        {/* Title */}
+        <View style={styles.header}>
+          <Text style={styles.titlePrefix}>You feel </Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.titleEmotion}>{weatherCondition.toLowerCase()}</Text>
+          </View>
+          <View style={styles.titleRow}>
+            <Text style={styles.titleSuffix}>today</Text>
+          </View>
+        </View>
 
-      {saved && <Text style={styles.savedText}>Check-in Saved!</Text>}
+        {/* Central Indicator */}
+        <Animated.View style={[styles.mainIndicatorContainer, { transform: [{ translateY: floatAnim }] }]}>
+          {isSunny ? (
+            <View style={styles.mainCircle}>
+              <Text style={styles.temperature}>{temperature}°</Text>
+            </View>
+          ) : (
+            <CloudShape>
+              <Text style={styles.temperature}>{temperature}°</Text>
+            </CloudShape>
+          )}
+        </Animated.View>
 
-      <Pressable style={styles.homeButton} onPress={() => router.replace("/(tabs)/principal_screen/weather1")}>
-        <Text style={styles.homeButtonText}>Return Home</Text>
-      </Pressable>
+        {/* Affirmation Pill */}
+        <View style={[styles.pillContainer, !isSunny && styles.pillContainerDark]}>
+          <Text style={[styles.pillText, !isSunny && styles.pillTextDark]}>{getAffirmation()}</Text>
+        </View>
+
+        {/* Teru Community Callout */}
+        <View style={styles.teruContainer}>
+          <Animated.View style={styles.tooltip}>
+            <View style={styles.tooltipBubble}>
+              <Text style={styles.tooltipText}>Check the garden community!</Text>
+              <View style={styles.tooltipArrow} />
+            </View>
+          </Animated.View>
+
+          <Pressable onPress={() => router.push("/(tabs)/chat")} style={styles.teruButton}>
+            <TeruIcon width={60} height={60} />
+          </Pressable>
+        </View>
+
+      </Animated.View>
+
+      {/* Bottom Navigation */}
+      <View style={styles.navBar}>
+        <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15}>
+          <HomeIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+        </Pressable>
+        <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
+          <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+        </Pressable>
+        <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
+          <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+        </Pressable>
+        <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>
+          <ChatIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#87CEEB" },
+  container: { flex: 1, backgroundColor: "#E99F95" },
   background: { ...StyleSheet.absoluteFillObject },
+  rainContainer: { ...StyleSheet.absoluteFillObject, zIndex: 5 },
+  rainDrop: {
+    position: 'absolute',
+    width: 2,
+    height: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    top: -20,
+  },
 
-  sun: {
-    position: "absolute",
-    top: 50,
-    left: width * 0.7,
+  // Landscape
+  landscapeContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+    justifyContent: 'flex-end',
+  },
+  mountain: {
+    position: 'absolute',
+    bottom: 0,
+    width: width * 1.5,
+    height: 300,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    transform: [{ rotate: '45deg' }],
+    borderRadius: 50,
+  },
+  mountainBack: {
+    left: -100,
+    bottom: -150,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  mountainFront: {
+    right: -50,
+    bottom: -180,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  flowerContainer: {
+    position: 'absolute',
+    bottom: 150,
+    left: width / 2 - 75,
+    zIndex: 2,
+  },
+
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 80,
+    zIndex: 10,
+  },
+  header: {
+    alignItems: 'center',
+  },
+  titlePrefix: {
+    fontSize: 32,
+    color: '#fff',
+    fontWeight: '400',
+  },
+  titleRow: {
+    alignItems: 'center',
+  },
+  titleEmotion: {
+    fontSize: 42,
+    color: '#fff',
+    fontWeight: '600',
+    marginTop: 5,
+  },
+  titleSuffix: {
+    fontSize: 42,
+    color: '#fff',
+    fontWeight: '600',
+  },
+
+  // Sunny Circle
+  mainIndicatorContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40,
+    height: 250,
+  },
+  mainCircle: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+
+  // Cloud Shape
+  cloudContainer: {
+    width: 220,
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cloudBase: {
+    width: 200,
+    height: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 0,
+    zIndex: 2,
+  },
+  cloudBubbleLeft: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 45,
+    bottom: 30,
+    left: 20,
+    zIndex: 1,
+  },
+  cloudBubbleRight: {
+    position: 'absolute',
     width: 80,
     height: 80,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 40,
-    shadowColor: "#FFD700",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
+    bottom: 30,
+    right: 25,
+    zIndex: 1,
   },
-
-  cloud: {
-    position: "absolute",
-    top: 80,
-    left: 0,
-    width: 120,
-    height: 60,
-    backgroundColor: "rgba(255,255,255,0.6)",
-    borderRadius: 30,
-  },
-
-  flower: {
-    position: "absolute",
-    bottom: 50,
-    left: width / 2 - 50,
-    width: 100,
-    height: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  flowerImg: {
-    width: 100,
-    height: 100,
-  },
-
-  title: {
-    position: "absolute",
-    top: 40,
-    width: "100%",
-    textAlign: "center",
-    fontSize: 22,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  savedText: {
+  cloudBubbleTop: {
     position: 'absolute',
-    bottom: 120,
-    width: "100%",
-    textAlign: "center",
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  homeButton: {
-    position: 'absolute',
+    width: 110,
+    height: 110,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 55,
     bottom: 50,
     alignSelf: 'center',
-    backgroundColor: '#b8d4c6',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
+    zIndex: 1,
   },
-  homeButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+
+  temperature: {
+    fontSize: 64,
+    fontWeight: '300',
+    color: '#1a1a1a',
+    zIndex: 10,
+  },
+
+  pillContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    marginTop: 40,
+    maxWidth: '80%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  pillContainerDark: {
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
+  pillText: {
+    fontSize: 18,
+    color: '#333',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontWeight: '500',
+  },
+  pillTextDark: {
     color: '#000',
+  },
+
+  teruContainer: {
+    position: 'absolute',
+    bottom: 120,
+    right: 30,
+    alignItems: 'flex-end',
+  },
+  tooltip: {
+    marginBottom: 10,
+    marginRight: 10,
+  },
+  tooltipBubble: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 16,
+    maxWidth: 150,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tooltipText: {
+    fontSize: 12,
+    color: '#333',
+    textAlign: 'center',
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    bottom: -8,
+    right: 20,
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#fff',
+  },
+  teruButton: {
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+
+  navBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingBottom: 20, // for bottom safe area approximation
+    backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
+    zIndex: 100, // Ensure high zIndex for clickability
+    // If background needed: backgroundColor: 'rgba(255,255,255,0.1)',
   },
 });

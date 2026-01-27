@@ -164,7 +164,7 @@ export default function ConnectionLevelPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#E99F95",
   },
 
   background: {

@@ -1,15 +1,15 @@
 // app/index.tsx
-import React from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Animated,
-  Dimensions,
-} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import React from "react";
+import {
+  Animated,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import TeruIndex from "../../assets/images/teru_index.svg";
 
 const { width, height } = Dimensions.get("window");
@@ -144,6 +144,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#E99F95",
   },
 
   gradient: {

@@ -139,7 +139,7 @@ export default function WelcomePage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#E99F95" },
   background: { ...StyleSheet.absoluteFillObject },
 
   subtitle: { marginTop: 60, marginLeft: 30, fontSize: 20, color: "rgba(255,255,255,0.5)" },
