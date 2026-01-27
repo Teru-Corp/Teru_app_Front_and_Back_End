@@ -2,12 +2,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Dimensions,
   Easing,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View
 } from "react-native";
 import client from "../../../api/client";
@@ -87,6 +89,7 @@ export default function EmotionalGardenWeather() {
   const energy = parseFloat(params.energy as string) || 0.5;
   const connection = parseFloat(params.connection as string) || 1;
   const stress = params.stress as string || "peaceful";
+  const [communityMsg, setCommunityMsg] = useState("");
 
   const [saved, setSaved] = useState(false);
 
@@ -125,6 +128,18 @@ export default function EmotionalGardenWeather() {
     };
     saveMood();
   }, [emotion, energy]);
+
+  const handleSendMessage = async () => {
+    if (!communityMsg.trim()) return;
+    try {
+      await client.post('/message', { texte: communityMsg });
+      Alert.alert("Success", "Your word has been added to the garden clouds!");
+      setCommunityMsg("");
+    } catch (error) {
+      console.error("Failed to send message", error);
+      Alert.alert("Error", "Could not share your word.");
+    }
+  };
 
   useEffect(() => {
     // Fade in
@@ -231,22 +246,43 @@ export default function EmotionalGardenWeather() {
         </View>
 
         {/* Central Indicator */}
-        <Animated.View style={[styles.mainIndicatorContainer, { transform: [{ translateY: floatAnim }] }]}>
-          {isSunny ? (
-            <View style={styles.mainCircle}>
-              <Text style={styles.temperature}>{temperature}°</Text>
+        {!saved ? (
+          <Animated.View style={[styles.mainIndicatorContainer, { transform: [{ translateY: floatAnim }] }]}>
+            {isSunny ? (
+              <View style={styles.mainCircle}>
+                <Text style={styles.temperature}>{temperature}°</Text>
+              </View>
+            ) : (
+              <CloudShape>
+                <Text style={styles.temperature}>{temperature}°</Text>
+              </CloudShape>
+            )}
+          </Animated.View>
+        ) : (
+          <View style={styles.messageSection}>
+            <Text style={styles.messageTitle}>Want to share a word with the garden?</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="Write something..."
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                value={communityMsg}
+                onChangeText={setCommunityMsg}
+                maxLength={30}
+              />
+              <Pressable style={styles.sendBtn} onPress={handleSendMessage}>
+                <Text style={styles.sendBtnText}>Add to Cloud</Text>
+              </Pressable>
             </View>
-          ) : (
-            <CloudShape>
-              <Text style={styles.temperature}>{temperature}°</Text>
-            </CloudShape>
-          )}
-        </Animated.View>
+          </View>
+        )}
 
         {/* Affirmation Pill */}
-        <View style={[styles.pillContainer, !isSunny && styles.pillContainerDark]}>
-          <Text style={[styles.pillText, !isSunny && styles.pillTextDark]}>{getAffirmation()}</Text>
-        </View>
+        {!saved && (
+          <View style={[styles.pillContainer, !isSunny && styles.pillContainerDark]}>
+            <Text style={[styles.pillText, !isSunny && styles.pillTextDark]}>{getAffirmation()}</Text>
+          </View>
+        )}
 
         {/* Teru Community Callout */}
         <View style={styles.teruContainer}>
@@ -517,5 +553,47 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
     zIndex: 100, // Ensure high zIndex for clickability
     // If background needed: backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  messageSection: {
+    padding: 30,
+    backgroundColor: 'rgba(255,255,254,0.15)',
+    borderRadius: 30,
+    width: width * 0.85,
+    alignItems: 'center',
+    marginTop: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  messageTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  inputWrapper: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    color: '#fff',
+    fontSize: 16,
+  },
+  sendBtn: {
+    backgroundColor: '#b8d4c6',
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    justifyContent: 'center',
+  },
+  sendBtnText: {
+    color: '#000',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

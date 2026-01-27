@@ -337,7 +337,7 @@ app.get('/', (req, res) => {
 
 app.get('/messages', async (req, res) => {
   try {
-    const messages = await Message.find().sort({ date: -1 }); // tri décroissant
+    const messages = await Message.find().sort({ date: -1 }).limit(20); // Limite aux 20 derniers
     res.json(messages);
   } catch (err) {
     console.error('Erreur lecture MongoDB :', err);
