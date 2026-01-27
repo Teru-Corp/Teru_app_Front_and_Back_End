@@ -259,19 +259,18 @@ export default function EmotionalGardenWeather() {
             )}
           </Animated.View>
         ) : (
-          <View style={styles.messageSection}>
-            <Text style={styles.messageTitle}>Want to share a word with the garden?</Text>
+          <View style={styles.communitySection}>
+            <Text style={styles.communityTitle}>Add to the Garden</Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
-                placeholder="Write something..."
-                placeholderTextColor="rgba(255,255,255,0.5)"
+                style={styles.cloudInput}
                 value={communityMsg}
                 onChangeText={setCommunityMsg}
-                maxLength={30}
+                placeholder="A word for the collective..."
+                placeholderTextColor="rgba(255,255,255,0.5)"
               />
-              <Pressable style={styles.sendBtn} onPress={handleSendMessage}>
-                <Text style={styles.sendBtnText}>Add to Cloud</Text>
+              <Pressable style={styles.addBtn} onPress={handleSendMessage}>
+                <Text style={styles.addBtnText}>Bloom</Text>
               </Pressable>
             </View>
           </View>
@@ -554,7 +553,7 @@ const styles = StyleSheet.create({
     zIndex: 100, // Ensure high zIndex for clickability
     // If background needed: backgroundColor: 'rgba(255,255,255,0.1)',
   },
-  messageSection: {
+  communitySection: {
     padding: 30,
     backgroundColor: 'rgba(255,255,254,0.15)',
     borderRadius: 30,
@@ -564,7 +563,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
   },
-  messageTitle: {
+  communityTitle: {
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
@@ -576,24 +575,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
-  input: {
+  cloudInput: {
     flex: 1,
     height: 50,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 15,
-    paddingHorizontal: 15,
+    borderRadius: 25,
+    paddingHorizontal: 20,
     color: '#fff',
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  sendBtn: {
-    backgroundColor: '#b8d4c6',
-    paddingHorizontal: 15,
-    borderRadius: 15,
+  addBtn: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 25,
+    borderRadius: 25,
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
-  sendBtnText: {
-    color: '#000',
-    fontWeight: '700',
+  addBtnText: {
+    color: '#1a1a2e',
+    fontWeight: '800',
     fontSize: 14,
   },
 });

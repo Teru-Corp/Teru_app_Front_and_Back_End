@@ -1,9 +1,27 @@
 import client from '@/api/client';
+import TeruIcon from "@/assets/icons/teru_icon_1.svg";
 import { useAuth } from '@/context/AuthContext';
+import { useCommunityWeather } from '@/hooks/useCommunityWeather';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Easing,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 interface Message {
     _id: string;
@@ -11,6 +29,57 @@ interface Message {
     utilisateur: string;
     date: string;
 }
+
+const BubbleMessage = ({ item, isMe }: { item: Message, isMe: boolean }) => {
+    const floatAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(floatAnim, {
+                    toValue: 1,
+                    duration: 3000 + Math.random() * 2000,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(floatAnim, {
+                    toValue: 0,
+                    duration: 3000 + Math.random() * 2000,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+    }, []);
+
+    const translateY = floatAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -15],
+    });
+
+    const translateX = floatAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, isMe ? -5 : 5],
+    });
+
+    return (
+        <Animated.View
+            style={[
+                styles.messageBubble,
+                isMe ? styles.myMessage : styles.theirMessage,
+                { transform: [{ translateY }, { translateX }] }
+            ]}
+        >
+            <View style={styles.bubbleCloudMain} />
+            <View style={[styles.bubbleCloudSec, { left: -10, bottom: -5, width: 30, height: 30 }]} />
+            <View style={[styles.bubbleCloudSec, { right: -5, top: -5, width: 25, height: 25 }]} />
+
+            {!isMe && <Text style={styles.sender}>User {item.utilisateur?.slice(-4)}</Text>}
+            <Text style={styles.messageText}>{item.texte}</Text>
+            <Text style={styles.date}>{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+        </Animated.View>
+    );
+};
 
 export default function ChatScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -20,6 +89,7 @@ export default function ChatScreen() {
     const flatListRef = useRef<FlatList>(null);
     const { user } = useAuth();
     const router = useRouter();
+    const { data: communityData } = useCommunityWeather();
 
     const fetchMessages = async () => {
         try {
@@ -34,7 +104,7 @@ export default function ChatScreen() {
 
     useEffect(() => {
         fetchMessages();
-        const interval = setInterval(fetchMessages, 5000); // Poll every 5s
+        const interval = setInterval(fetchMessages, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -45,30 +115,20 @@ export default function ChatScreen() {
         try {
             await client.post('/message', { texte: inputText });
             setInputText('');
-            fetchMessages(); // Refresh immediately
+            fetchMessages();
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message');
         } finally {
             setSending(false);
         }
     };
 
-    const renderItem = ({ item }: { item: Message }) => {
-        const isMe = item.utilisateur === user?.id;
-        return (
-            <View style={[styles.messageBubble, isMe ? styles.myMessage : styles.theirMessage]}>
-                {!isMe && <Text style={styles.sender}>User {item.utilisateur?.slice(-4)}</Text>}
-                <Text style={styles.messageText}>{item.texte}</Text>
-                <Text style={styles.date}>{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-            </View>
-        );
-    };
+    const bgColors = communityData?.colors || ["#E19A93", "#E5B5A0", "#EDD7B8"];
 
     return (
         <SafeAreaView style={styles.container}>
             <LinearGradient
-                colors={["#E19A93", "#E5B5A0", "#EDD7B8"]}
+                colors={bgColors}
                 style={styles.gradient}
             />
 
@@ -76,7 +136,11 @@ export default function ChatScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Text style={styles.backButtonText}>← </Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Community Chat</Text>
+                <View style={styles.headerTitleGroup}>
+                    <Text style={styles.headerTitle}>Community Garden</Text>
+                    <Text style={styles.headerSubtitle}>{communityData?.count || 0} spirits blossoming</Text>
+                </View>
+                <TeruIcon width={30} height={30} opacity={0.6} />
             </View>
 
             {loading ? (
@@ -87,7 +151,7 @@ export default function ChatScreen() {
                 <FlatList
                     ref={flatListRef}
                     data={messages}
-                    renderItem={renderItem}
+                    renderItem={({ item }) => <BubbleMessage item={item} isMe={item.utilisateur === user?.id} />}
                     keyExtractor={(item) => item._id}
                     contentContainerStyle={styles.listContent}
                     inverted
@@ -97,18 +161,19 @@ export default function ChatScreen() {
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-                style={styles.inputContainer}
             >
-                <TextInput
-                    style={styles.input}
-                    value={inputText}
-                    onChangeText={setInputText}
-                    placeholder="Type a message..."
-                    placeholderTextColor="rgba(0,0,0,0.4)"
-                />
-                <TouchableOpacity onPress={sendMessage} disabled={sending} style={styles.sendButton}>
-                    {sending ? <ActivityIndicator color="#fff" /> : <Text style={styles.sendButtonText}>Send</Text>}
-                </TouchableOpacity>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        value={inputText}
+                        onChangeText={setInputText}
+                        placeholder="Whisper to the clouds..."
+                        placeholderTextColor="rgba(255,255,255,0.5)"
+                    />
+                    <TouchableOpacity onPress={sendMessage} disabled={sending} style={styles.sendButton}>
+                        {sending ? <ActivityIndicator color="#fff" /> : <Text style={styles.sendButtonText}>Send</Text>}
+                    </TouchableOpacity>
+                </View>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -122,26 +187,34 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
     },
     header: {
-        padding: 16,
-        paddingTop: 40,
-        backgroundColor: 'rgba(255,255,255,0.3)',
+        padding: 20,
+        paddingTop: 50,
         flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.2)'
+        justifyContent: 'space-between',
     },
     backButton: {
-        padding: 8,
+        padding: 10,
     },
     backButtonText: {
         fontSize: 24,
-        color: '#2B2B2B',
+        color: '#fff',
+    },
+    headerTitleGroup: {
+        flex: 1,
+        marginLeft: 10,
     },
     headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#2B2B2B',
-        marginLeft: 16,
+        fontSize: 22,
+        fontWeight: '900',
+        color: '#fff',
+        letterSpacing: -0.5,
+    },
+    headerSubtitle: {
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.7)',
+        fontWeight: '600',
+        textTransform: 'uppercase',
     },
     center: {
         flex: 1,
@@ -149,67 +222,90 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     listContent: {
-        padding: 16,
-        paddingBottom: 80,
-        flexDirection: 'column-reverse' // Inverted list needs this? No, FlatList inverted handles it.
-        // Actually if inverted is true, data[0] is at bottom.
-        // My backend sorts by date desc (newest first).
-        // So messages[0] is newest. Inverted FlatList shows index 0 at bottom. Correct.
+        padding: 20,
+        paddingBottom: 100,
     },
     messageBubble: {
-        maxWidth: '80%',
-        padding: 12,
-        borderRadius: 16,
-        marginBottom: 8,
+        maxWidth: '75%',
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        borderRadius: 25,
+        marginBottom: 25,
+        position: 'relative',
+        justifyContent: 'center',
+    },
+    bubbleCloudMain: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(255,255,255,0.25)',
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
+    },
+    bubbleCloudSec: {
+        position: 'absolute',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     myMessage: {
         alignSelf: 'flex-end',
-        backgroundColor: '#9DCFBE',
-        borderBottomRightRadius: 4,
+        marginRight: 10,
     },
     theirMessage: {
         alignSelf: 'flex-start',
-        backgroundColor: '#ffffff',
-        borderBottomLeftRadius: 4,
+        marginLeft: 10,
     },
     sender: {
-        fontSize: 10,
-        color: 'rgba(0,0,0,0.5)',
+        fontSize: 11,
+        color: 'rgba(255,255,255,0.8)',
+        fontWeight: '700',
         marginBottom: 4,
     },
     messageText: {
         fontSize: 16,
-        color: '#2B2B2B',
+        color: '#fff',
+        fontWeight: '600',
     },
     date: {
         fontSize: 10,
-        color: 'rgba(0,0,0,0.4)',
+        color: 'rgba(255,255,255,0.5)',
         alignSelf: 'flex-end',
         marginTop: 4,
     },
     inputContainer: {
         flexDirection: 'row',
-        padding: 16,
-        backgroundColor: 'rgba(255,255,255,0.9)',
+        padding: 20,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+        backgroundColor: 'transparent',
         alignItems: 'center',
     },
     input: {
         flex: 1,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 20,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        marginRight: 8,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 30,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        marginRight: 12,
         fontSize: 16,
+        color: '#fff',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
     },
     sendButton: {
-        backgroundColor: '#2B2B2B',
-        borderRadius: 20,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        backgroundColor: '#fff',
+        borderRadius: 30,
+        paddingHorizontal: 25,
+        paddingVertical: 15,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
     },
     sendButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
+        color: '#1a1a2e',
+        fontWeight: '900',
+        fontSize: 15,
     },
 });
+

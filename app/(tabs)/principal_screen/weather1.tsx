@@ -1,3 +1,4 @@
+import { useCommunityWeather } from "@/hooks/useCommunityWeather";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
@@ -10,10 +11,9 @@ import {
 import client from "../../../api/client";
 
 import TeruBotWeather from "../../../assets/icons/teru_icon_1.svg";
-//import MoodCheck from "../mood_check_in/checkin";
 
 // NAV ICONS (remplace par tes vrais SVG)
-import ChatIcon from "../../../assets/icons/chat.svg";
+import ChatIcon from "../../../assets/icons/chat_icon_bis.svg";
 import HomeIcon from "../../../assets/icons/home.svg";
 import MoodIcon from "../../../assets/icons/mood.svg";
 import WeatherIcon from "../../../assets/icons/weather.svg";
@@ -22,35 +22,38 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Weather() {
   const router = useRouter();
-  const { logout } = useAuth(); // Get logout function
-  const [weather, setWeather] = React.useState({ temp: '--', label: 'Loading...' });
+  const { logout, user } = useAuth(); // Get logout function and user
+  const [personalWeather, setPersonalWeather] = React.useState({ temp: '--', label: 'Loading...' });
+  const { data: communityData } = useCommunityWeather();
 
   // Fetch stats when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      const fetchWeather = async () => {
+      const fetchPersonalWeather = async () => {
         try {
           const res = await client.get('/weather-stats');
           if (res.data.temperature !== null) {
-            setWeather({
+            setPersonalWeather({
               temp: `${res.data.temperature}°C`,
               label: `Feeling ${res.data.label}`
             });
           } else {
-            setWeather({ temp: '--', label: 'No Data' });
+            setPersonalWeather({ temp: '--', label: 'No Data' });
           }
         } catch (e) {
-          console.error("Failed to fetch weather", e);
+          console.error("Failed to fetch personal weather", e);
         }
       };
-      fetchWeather();
+      fetchPersonalWeather();
     }, [])
   );
+
+  const bgColors = communityData?.colors || ['#E99F95', '#F2E8C0', '#A6D8C6'];
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#E99F95', '#F2E8C0', '#A6D8C6']}
+        colors={bgColors}
         style={styles.bg}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -58,30 +61,42 @@ export default function Weather() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.welcome}>Welcome back</Text>
-            <Text style={styles.name}>Teru</Text>
+
+            <Text style={styles.name}>{user?.nom || 'Teru'}</Text>
           </View>
           <Pressable onPress={logout} style={styles.logoutButton}>
             <Text style={styles.logoutText}>Logout</Text>
           </Pressable>
         </View>
 
-        {/* Hero */}
-        <View style={styles.hero}>
-          <View style={[styles.glassCircle, { overflow: 'hidden' }]}>
-            <TeruBotWeather width="100%" height="100%" />
-          </View>
 
 
-        </View>
 
-        {/* Title (NOT over the circle) */}
+        {/* Title */}
         <Text style={styles.title}>
           What is your emotional weather today?
         </Text>
 
-        {/* Main action */}
+        {/* Hero */}
+        <View style={styles.hero}>
+          <View style={styles.logoWrapper}>
+            <View style={[styles.glassCircle, { overflow: 'hidden' }]}>
+              <TeruBotWeather width="100%" height="100%" />
+            </View>
+            <View style={styles.feelingPill}>
+              <Text style={styles.bottomText}>{personalWeather.label}</Text>
+            </View>
+          </View>
+        </View>
 
+
+
+        {/* Community Sentiment Message */}
+
+
+
+
+        {/* Main action */}
         <Pressable
           style={({ pressed }) => [
             styles.mainCard,
@@ -103,7 +118,7 @@ export default function Weather() {
             style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.8 }]}
             onPress={() => router.push("/(tabs)/history")}
           >
-            <Text style={styles.actionText}>Weather History</Text>
+            <Text style={styles.actionText}>History</Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.8 }]}
@@ -113,26 +128,24 @@ export default function Weather() {
           </Pressable>
         </View>
 
-        {/* Bottom pill */}
-        <View style={styles.bottomPill}>
-          <Text style={styles.bottomText}>{weather.label}</Text>
+        {/* Bottom pill removed */}
+
+        {/* Bottom Navigation */}
+        <View style={styles.navBar}>
+          <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15}>
+            <HomeIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+          </Pressable>
+          <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
+            <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+          </Pressable>
+          <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
+            <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+          </Pressable>
+          <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>
+            <ChatIcon width={28} height={28} stroke="white" strokeWidth={1.5} fill="none" />
+          </Pressable>
         </View>
 
-        {/* Bottom navigation */}
-        <View style={styles.nav}>
-          <Pressable onPress={() => { }} hitSlop={10}>
-            <HomeIcon width={24} height={24} />
-          </Pressable>
-          <Pressable onPress={() => router.push("/(tabs)/mood_check_in/checkin")} hitSlop={10}>
-            <MoodIcon width={24} height={24} />
-          </Pressable>
-          <Pressable onPress={() => router.push("/(tabs)/garden")} hitSlop={10}>
-            <WeatherIcon width={24} height={24} />
-          </Pressable>
-          <Pressable onPress={() => router.push("/(tabs)/chat")} hitSlop={10}>
-            <ChatIcon width={24} height={24} />
-          </Pressable>
-        </View>
       </LinearGradient>
     </View>
   );
@@ -151,7 +164,7 @@ const styles = StyleSheet.create({
   bg: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 100,
   },
 
   header: {
@@ -179,6 +192,22 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
   },
 
+  sentimentContainer: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: 20,
+    borderRadius: 25,
+    marginVertical: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  sentimentText: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+
   name: {
     fontSize: 26,
     fontWeight: "800",
@@ -187,7 +216,7 @@ const styles = StyleSheet.create({
 
   hero: {
     alignItems: "center",
-    marginVertical: 24,
+    marginVertical: 0,
   },
 
   glassCircle: {
@@ -222,7 +251,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "white",
     textAlign: "center",
-    marginBottom: 32,
+    marginBottom: 20,
+    marginTop: 20, // Push it down a bit
     fontWeight: "600",
   },
 
@@ -233,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.5)",
     borderRadius: 30,
     padding: 24,
-    marginBottom: 24,
+    marginBottom: 15,
     borderWidth: 1,
     borderColor: "white",
   },
@@ -257,7 +287,7 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: 16,
-    marginBottom: 40,
+    marginBottom: 20,
   },
 
   actionCard: {
@@ -276,14 +306,25 @@ const styles = StyleSheet.create({
     color: "#000",
   },
 
-  bottomPill: {
+  logoWrapper: {
+    width: 260,
+    height: 260,
+    position: 'relative',
+  },
+  feelingPill: {
     position: "absolute",
-    bottom: 90,
-    right: 24,
+    top: 0,
+    right: -20, // Negative to hang off slightly, or 0 to be flush
     backgroundColor: "white",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 30,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    zIndex: 10,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
 
   bottomText: {
@@ -291,13 +332,17 @@ const styles = StyleSheet.create({
     color: "#000",
   },
 
-  nav: {
-    position: "absolute",
-    bottom: 28,
+  navBar: {
+    position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
+    height: 80,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingBottom: 20, // for bottom safe area approximation
+    backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
+    zIndex: 100, // Ensure high zIndex for clickability
   },
 });
