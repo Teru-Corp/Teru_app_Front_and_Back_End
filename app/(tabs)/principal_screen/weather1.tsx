@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
 import React from "react";
 import {
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -21,7 +22,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Weather() {
   const router = useRouter();
-  const { logout, user } = useAuth(); // Get logout function and user
+  const { logout, user } = useAuth();
   const [personalWeather, setPersonalWeather] = React.useState({ temp: '--', label: 'Loading...' });
   const { data: communityData } = useCommunityWeather();
 
@@ -47,6 +48,24 @@ export default function Weather() {
     }, [])
   );
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Leaving the Garden?",
+      "Are you sure you want to log out of the garden?",
+      [
+        {
+          text: "Stay",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          onPress: logout,
+          style: "destructive"
+        }
+      ]
+    );
+  };
+
   const bgColors = communityData?.colors || ['#E99F95', '#F2E8C0', '#A6D8C6'];
 
   return (
@@ -60,10 +79,10 @@ export default function Weather() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-
+            <Text style={styles.welcome}>Good morning,</Text>
             <Text style={styles.name}>{user?.nom || 'Teru'}</Text>
           </View>
-          <Pressable onPress={logout} style={styles.logoutButton}>
+          <Pressable onPress={handleLogout} style={styles.logoutButton}>
             <Text style={styles.logoutText}>Logout</Text>
           </Pressable>
         </View>
@@ -134,8 +153,9 @@ export default function Weather() {
 
         {/* Bottom Navigation */}
         <View style={styles.navBar}>
-          <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15}>
+          <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15} style={{ alignItems: 'center' }}>
             <HomeIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+            <View style={styles.activeLine} />
           </Pressable>
           <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
             <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
@@ -356,5 +376,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20, // for bottom safe area approximation
     backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
     zIndex: 100, // Ensure high zIndex for clickability
+  },
+  activeLine: {
+    width: 20,
+    height: 3,
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    marginTop: 5,
   },
 });

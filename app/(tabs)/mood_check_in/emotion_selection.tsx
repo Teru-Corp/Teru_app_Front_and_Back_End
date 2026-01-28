@@ -145,8 +145,9 @@ export default function WelcomePage() {
         <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15}>
           <HomeIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
         </Pressable>
-        <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
+        <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15} style={{ alignItems: 'center' }}>
           <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+          <View style={styles.activeLine} />
         </Pressable>
         <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
           <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
@@ -216,5 +217,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20, // for bottom safe area approximation
     backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
     zIndex: 100, // Ensure high zIndex for clickability
+  },
+  activeLine: {
+    width: 20,
+    height: 3,
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    marginTop: 5,
   },
 });

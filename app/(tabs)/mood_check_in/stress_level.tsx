@@ -185,7 +185,9 @@ const styles = StyleSheet.create({
   },
 
   cloudActive: {
-    backgroundColor: "rgba(180,180,180,0.7)",
+    backgroundColor: "#b8d4c6",
+    borderWidth: 2,
+    borderColor: "#fff",
   },
 
   cloudText: {

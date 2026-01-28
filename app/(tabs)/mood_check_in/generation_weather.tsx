@@ -292,7 +292,7 @@ export default function EmotionalGardenWeather() {
             </View>
           </Animated.View>
 
-          <Pressable onPress={() => router.push("/(tabs)/chat")} style={styles.teruButton}>
+          <Pressable onPress={() => router.push("/(tabs)/garden")} style={styles.teruButton}>
             <TeruIcon width={60} height={60} />
           </Pressable>
         </View>
@@ -304,8 +304,9 @@ export default function EmotionalGardenWeather() {
         <Pressable onPress={() => router.replace("/(tabs)/principal_screen/weather1")} hitSlop={15}>
           <HomeIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
         </Pressable>
-        <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
+        <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15} style={{ alignItems: 'center' }}>
           <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
+          <View style={styles.activeLine} />
         </Pressable>
         <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
           <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
@@ -599,5 +600,12 @@ const styles = StyleSheet.create({
     color: '#1a1a2e',
     fontWeight: '800',
     fontSize: 14,
+  },
+  activeLine: {
+    width: 20,
+    height: 3,
+    backgroundColor: '#fff',
+    borderRadius: 2,
+    marginTop: 5,
   },
 });

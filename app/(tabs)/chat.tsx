@@ -139,9 +139,7 @@ export default function ChatScreen() {
             />
 
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Text style={styles.backButtonText}>← </Text>
-                </TouchableOpacity>
+
                 <View style={styles.headerTitleGroup}>
                     <Text style={styles.headerTitle}>Community Garden</Text>
                     <Text style={styles.headerSubtitle}>{communityData?.count || 0} spirits blossoming</Text>
@@ -193,8 +191,9 @@ export default function ChatScreen() {
                 <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
                     <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
                 </Pressable>
-                <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>
+                <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15} style={{ alignItems: 'center' }}>
                     <ChatIcon width={28} height={28} stroke="white" strokeWidth={1.5} fill="none" />
+                    <View style={styles.activeLine} />
                 </Pressable>
             </View>
         </SafeAreaView >
@@ -210,7 +209,7 @@ const styles = StyleSheet.create({
     },
     header: {
         padding: 20,
-        paddingTop: 50,
+        paddingTop: 20,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -341,6 +340,13 @@ const styles = StyleSheet.create({
         paddingBottom: 20, // for bottom safe area approximation
         backgroundColor: 'transparent', // Transparent as shown in ref, icons floating
         zIndex: 100, // Ensure high zIndex for clickability
+    },
+    activeLine: {
+        width: 20,
+        height: 3,
+        backgroundColor: '#fff',
+        borderRadius: 2,
+        marginTop: 5,
     },
 });
 
