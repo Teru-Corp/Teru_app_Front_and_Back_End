@@ -7,7 +7,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
 import client from "../../../api/client";
 
@@ -23,6 +23,11 @@ import { useAuth } from "@/context/AuthContext";
 export default function Weather() {
   const router = useRouter();
   const { logout, user } = useAuth();
+  const hour = new Date().getHours();
+  let greeting = "Good morning";
+  if (hour >= 12 && hour < 18) greeting = "Good afternoon";
+  if (hour >= 18) greeting = "Good evening";
+
   const [personalWeather, setPersonalWeather] = React.useState({ temp: '--', label: 'Loading...' });
   const { data: communityData } = useCommunityWeather();
 
@@ -79,7 +84,7 @@ export default function Weather() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.welcome}>Good morning,</Text>
+            <Text style={styles.welcome}>{greeting},</Text>
             <Text style={styles.name}>{user?.nom || 'Teru'}</Text>
           </View>
           <Pressable onPress={handleLogout} style={styles.logoutButton}>
@@ -141,7 +146,7 @@ export default function Weather() {
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.8 }]}
-            onPress={() => router.push("/(tabs)/chat")}
+            onPress={() => router.push("/(tabs)/garden")}
           >
             <Text style={styles.actionText}>Community</Text>
           </Pressable>

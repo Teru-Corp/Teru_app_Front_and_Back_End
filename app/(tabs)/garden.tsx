@@ -1,6 +1,6 @@
 import { useCommunityWeather } from "@/hooks/useCommunityWeather";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -129,27 +129,38 @@ const EtherealBloom = ({ color, x, scale }: { color: string; x: number; scale: n
     );
 };
 
-const MessageCloud = ({ text, index, total }: { text: string; index: number; total: number }) => {
+const MessageCloud = ({ text, index, total, isNew }: { text: string; index: number; total: number; isNew?: boolean }) => {
     const drift = useRef(new Animated.Value(0)).current;
+    const popAnim = useRef(new Animated.Value(isNew ? 0 : 1)).current;
 
-    // Slot System: Divide the screen vertically
-    // Use the middle 60% of the screen (from 20% to 80%)
-    // Slot System: Divide the bottom area of the screen
-    // Target the lower third, avoiding the absolute bottom (nav/button)
-    const safeTop = height * 0.55; // Start below the middle
-    const safeHeight = height * 0.25; // Use 25% of height
-    const slotSize = safeHeight / 5; // Fixed 5 slots
+    // Deterministic Non-Overlapping Positions (avoiding center where temp is)
+    // index % 5 to handle more than 5 messages safely looping
+    // Safe Zones: Strictly flanking the center column (keeping middle 30% clear)
+    const POSITIONS = [
+        { top: 0.20, left: 0.05 }, // High Left
+        { top: 0.25, left: 0.70 }, // High Right
+        { top: 0.45, left: 0.02 }, // Mid Left
+        { top: 0.50, left: 0.75 }, // Mid Right
+    ];
 
-    // Calculate precise Y based on index to prevent overlap
-    const startY = safeTop + (index * slotSize) + (Math.random() * (slotSize * 0.5));
-
-    const startX = useRef(Math.random() * (width - 150)).current;
+    const pos = POSITIONS[index % POSITIONS.length];
+    const startY = height * pos.top;
+    const startX = width * pos.left;
 
     useEffect(() => {
+        if (isNew) {
+            Animated.spring(popAnim, {
+                toValue: 1,
+                friction: 5,
+                tension: 40,
+                useNativeDriver: true
+            }).start();
+        }
+
         Animated.loop(
             Animated.sequence([
-                Animated.timing(drift, { toValue: 1, duration: 15000 + Math.random() * 10000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-                Animated.timing(drift, { toValue: 0, duration: 15000 + Math.random() * 10000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                Animated.timing(drift, { toValue: 1, duration: 6000 + Math.random() * 4000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                Animated.timing(drift, { toValue: 0, duration: 6000 + Math.random() * 4000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
             ])
         ).start();
     }, []);
@@ -161,15 +172,17 @@ const MessageCloud = ({ text, index, total }: { text: string; index: number; tot
                 {
                     left: startX,
                     top: startY,
-                    transform: [{ translateY: drift.interpolate({ inputRange: [0, 1], outputRange: [-10, 10] }) }, { translateX: drift.interpolate({ inputRange: [0, 1], outputRange: [-5, 5] }) }],
+                    transform: [
+                        { translateY: drift.interpolate({ inputRange: [0, 1], outputRange: [-10, 10] }) },
+                        { translateX: drift.interpolate({ inputRange: [0, 1], outputRange: [-5, 5] }) },
+                        { scale: popAnim }
+                    ],
                     opacity: drift.interpolate({ inputRange: [0, 0.1, 0.9, 1], outputRange: [0, 0.9, 0.9, 0] }),
                     zIndex: 100 + index
                 },
             ]}
         >
             <View style={styles.cloudBubbleMain} />
-            <View style={[styles.cloudBubbleSec, { left: -15, bottom: -5, width: 50, height: 50 }]} />
-            <View style={[styles.cloudBubbleSec, { right: -10, top: -5, width: 40, height: 40 }]} />
 
             <Text style={styles.messageText}>{text}</Text>
         </Animated.View>
@@ -198,6 +211,10 @@ const MistLayer = ({ color, duration }: { color: string; duration: number }) => 
 
 export default function CommunityGarden() {
     const router = useRouter();
+    const params = useLocalSearchParams();
+    const newWord = params.newWord as string;
+    const shouldAnimate = params.animate === "true";
+
     const [msgLoading, setMsgLoading] = useState(true);
     const [messages, setMessages] = useState<any[]>([]);
     const { data: communityData, loading: commLoading } = useCommunityWeather();
@@ -206,12 +223,21 @@ export default function CommunityGarden() {
     useEffect(() => {
         fetchMessages();
         Animated.timing(fadeAnim, { toValue: 1, duration: 2500, useNativeDriver: true }).start();
-    }, []);
+    }, [newWord]);
 
     const fetchMessages = async () => {
         try {
             const res = await client.get('/messages');
-            setMessages(res.data.slice(0, 5));
+            let msgs = res.data.slice(0, 4);
+
+            // Optimistically add the new word if it's not in the top list yet
+            if (newWord) {
+                const exists = msgs.some((m: any) => m.texte === newWord);
+                if (!exists) {
+                    msgs = [{ _id: 'temp-new', texte: newWord }, ...msgs.slice(0, 3)];
+                }
+            }
+            setMessages(msgs);
             setMsgLoading(false);
         } catch (e) {
             console.error("Garden messages error", e);
@@ -281,6 +307,11 @@ export default function CommunityGarden() {
             els.push(<OrganicParticles key="pollen" type="Pollen" count={5} color="#FFFACD" />);
             // Joyful Sparks (White/Gold Fireflies) - Much more subtle
             els.push(<OrganicParticles key="joy-sparks" type="Firefly" count={25} color="#FFFFFF" />);
+
+            // Falling Cherry Blossoms (Sakura)
+            for (let i = 0; i < 15; i++) {
+                els.push(<Petal key={`sakura-${i}`} color="#FFB7C5" delay={i * 500} />);
+            }
         } else if (teruFeeling === "Default") {
             // Gentle atmosphere
             els.push(<OrganicParticles key="firefly-def" type="Firefly" count={8} color="#FFF" />);
@@ -300,6 +331,15 @@ export default function CommunityGarden() {
 
             <View style={StyleSheet.absoluteFill}>
                 {renderLayers()}
+                {messages.map((msg, index) => (
+                    <MessageCloud
+                        key={msg._id || index}
+                        text={msg.texte}
+                        index={index}
+                        total={messages.length}
+                        isNew={shouldAnimate && msg.texte === newWord}
+                    />
+                ))}
             </View>
 
             <Animated.View style={[styles.content, { opacity: fadeAnim }]}>

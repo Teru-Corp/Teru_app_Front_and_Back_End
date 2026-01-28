@@ -108,6 +108,10 @@ export default function EmotionalGardenWeather() {
     weatherCondition = "Sunny";
   }
 
+  // Gardening Animation state
+  const [isGardening, setIsGardening] = useState(false);
+  const gardeningAnim = useRef(new Animated.Value(0)).current;
+
   // Calculate "Temperature" based on energy (0-1) -> 10-37°
   const temperature = Math.round(10 + (energy * 27));
 
@@ -133,8 +137,37 @@ export default function EmotionalGardenWeather() {
     if (!communityMsg.trim()) return;
     try {
       await client.post('/message', { texte: communityMsg });
-      Alert.alert("Success", "Your word has been added to the garden clouds!");
-      setCommunityMsg("");
+
+      // Start Gardening Animation
+      setIsGardening(true);
+
+      // Animation Sequence: Appear -> Burst
+      Animated.sequence([
+        // 1. Zoom In (Appear)
+        Animated.spring(gardeningAnim, {
+          toValue: 1,
+          friction: 4,
+          useNativeDriver: true
+        }),
+        // 2. Burst (Expand and Fade)
+        Animated.timing(gardeningAnim, {
+          toValue: 2,
+          duration: 800,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true
+        })
+      ]).start(() => {
+        router.push({
+          pathname: "/(tabs)/garden",
+          params: { newWord: communityMsg, animate: "true" }
+        });
+        setTimeout(() => {
+          setCommunityMsg("");
+          setIsGardening(false);
+          gardeningAnim.setValue(0);
+        }, 500);
+      });
+
     } catch (error) {
       console.error("Failed to send message", error);
       Alert.alert("Error", "Could not share your word.");
@@ -171,6 +204,16 @@ export default function EmotionalGardenWeather() {
   const bloomScale = flowerAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 0.5 + (energy * 0.8)], // Scale based on energy
+  });
+
+  // Burst Animation Interpolations
+  const bubbleScale = gardeningAnim.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [0, 1, 3] // Zoom in to 1, then expand to 3 (Burst)
+  });
+  const bubbleOpacity = gardeningAnim.interpolate({
+    inputRange: [0, 1, 1.2, 2],
+    outputRange: [0, 1, 1, 0] // Fade out at end of burst
   });
 
   // Rain generator
@@ -226,6 +269,20 @@ export default function EmotionalGardenWeather() {
       </View>
 
       {renderRain()}
+
+      {/* Gardening Animation Overlay (Bubble Burst) */}
+      {isGardening && (
+        <View style={[StyleSheet.absoluteFill, { zIndex: 200, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }]}>
+          <Animated.View style={{
+            opacity: bubbleOpacity,
+            transform: [{ scale: bubbleScale }]
+          }}>
+            <View style={styles.animationBubble}>
+              <Text style={styles.animationBubbleText}>{communityMsg}</Text>
+            </View>
+          </Animated.View>
+        </View>
+      )}
 
       {/* Growing Flower in the Garden */}
       <Animated.View style={[styles.flowerContainer, { transform: [{ scale: bloomScale }] }]}>
@@ -608,4 +665,28 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     marginTop: 5,
   },
+
+  // Animation Elements
+  animationBubble: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#fff',
+    shadowColor: '#fff',
+    shadowRadius: 25,
+    shadowOpacity: 0.6,
+    elevation: 10,
+    minWidth: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  animationBubbleText: {
+    color: '#1a1a2e',
+    fontSize: 28,
+    fontWeight: '800',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  }
 });
