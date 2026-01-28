@@ -155,6 +155,59 @@ app.post('/message', verifierToken, async (req, res) => {
 });
 
 // Enregistrer un mood (x, y) pour l'utilisateur connecté
+const robotController = require('./robot_controller'); // Import Robot Controller
+
+// Initialisation Robot (Try to connect to USBs)
+robotController.init();
+
+// --- HELPER: Calculate Weather (Aggregation Logic) ---
+async function calculateWeather(userId) {
+  // 1. Fetch last 10 moods
+  const moods = await Mood.find({ utilisateur: userId })
+    .sort({ date: -1 })
+    .limit(10);
+
+  if (moods.length === 0) {
+    return { temperature: null, condition: 'Clear', label: 'No Data' };
+  }
+
+  // 2. Calculate Temperature (Average Energy)
+  let totalEnergy = 0;
+  moods.forEach(m => totalEnergy += (m.energy || 0.5));
+  const avgEnergy = totalEnergy / moods.length;
+  const temperature = Math.round(avgEnergy * 30); // 0-30°C
+
+  // 3. Calculate Condition (Dominant State)
+  let condition = 'Cloudy';
+  let label = 'Neutral';
+
+  let stressCount = 0;
+  let sadCount = 0;
+  let happyCount = 0;
+
+  moods.forEach(m => {
+    if (m.stress === 'overwhelmed' || m.stress === 'stressed') stressCount++;
+    if (m.emotion === 'Sad' || m.emotion === 'Anxious') sadCount++;
+    if (m.emotion === 'Joyful' || m.emotion === 'Energetic') happyCount++;
+  });
+
+  if (stressCount >= 3) {
+    condition = 'Stormy';
+    label = 'Turbulent';
+  } else if (sadCount >= 3) {
+    condition = 'Rainy';
+    label = 'Gloomy';
+  } else if (happyCount >= 3) {
+    condition = 'Sunny';
+    label = 'Radiant';
+  } else {
+    condition = 'Cloudy'; // Default
+    label = 'Calm';
+  }
+
+  return { temperature, condition, label };
+}
+
 // Enregistrer un mood détaillé pour l'utilisateur connecté
 app.post('/mood', verifierToken, async (req, res) => {
   try {
@@ -173,9 +226,17 @@ app.post('/mood', verifierToken, async (req, res) => {
       stress
     });
 
+    // --- AGGREGATION & ROBOT TRIGGER ---
+    const weather = await calculateWeather(req.userId);
+    console.log(`[APP] New Weather calculated: ${weather.condition}`);
+
+    // Send command to ESP32s
+    robotController.updateRobotExpression(weather);
+
     res.status(201).json({
       message: 'Mood enregistré avec succès',
-      mood
+      mood,
+      weather // Optional: send back new weather
     });
   } catch (err) {
     console.error('Erreur enregistrement mood :', err);
@@ -199,56 +260,8 @@ app.get('/history', verifierToken, async (req, res) => {
 
 app.get('/weather-stats', verifierToken, async (req, res) => {
   try {
-    // Fetch last 10 moods for this user
-    const moods = await Mood.find({ utilisateur: req.userId })
-      .sort({ date: -1 })
-      .limit(10);
-
-    if (moods.length === 0) {
-      return res.json({ temperature: null, condition: 'Clear', label: 'No Data' });
-    }
-
-    // 1. Calculate Temperature (Average Energy)
-    let totalEnergy = 0;
-    moods.forEach(m => totalEnergy += (m.energy || 0.5)); // Default to 0.5 if missing
-    const avgEnergy = totalEnergy / moods.length;
-    // Map 0.0-1.0 to 0°C - 30°C
-    const temperature = Math.round(avgEnergy * 30);
-
-    // 2. Calculate Condition
-    let condition = 'Cloudy'; // Default
-    let label = 'Neutral';
-
-    // Count occurrences
-    let stressCount = 0;
-    let sadCount = 0;
-    let happyCount = 0;
-
-    moods.forEach(m => {
-      if (m.stress === 'overwhelmed' || m.stress === 'stressed') stressCount++;
-      if (m.emotion === 'Sad' || m.emotion === 'Anxious') sadCount++;
-      if (m.emotion === 'Joyful' || m.emotion === 'Energetic') happyCount++;
-    });
-
-    if (stressCount >= 3) {
-      condition = 'Stormy';
-      label = 'Turbulent';
-    } else if (sadCount >= 3) {
-      condition = 'Rainy';
-      label = 'Gloomy';
-    } else if (happyCount >= 3) {
-      condition = 'Sunny';
-      label = 'Radiant';
-    } else {
-      condition = 'Cloudy';
-      label = 'Calm';
-    }
-
-    res.json({
-      temperature,
-      condition,
-      label
-    });
+    const weather = await calculateWeather(req.userId);
+    res.json(weather);
   } catch (err) {
     console.error('Erreur weather-stats :', err);
     res.status(500).json({ error: 'Erreur serveur pour weather-stats' });

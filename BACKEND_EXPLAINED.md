@@ -24,3 +24,9 @@ This architecture enables the mobile application to communicate seamlessly with 
 2.  **Transmission**: An authenticated HTTP POST request is sent to the `/mood` endpoint carrying a specific JSON payload.
 3.  **Processing**: The Express server verifies the JWT token, validates the data against the Mongoose schema, and commits the entry to MongoDB.
 4.  **Feedback**: A success response (HTTP 201) is returned to the client, triggering a UI update.
+
+## 5. Emotional Aggregation Logic
+Terubot is supported by a backend that connects the mobile application with the physical robot, handling authentication, storage, and aggregation of emotional inputs. The system follows a decoupled client--server architecture, allowing components to communicate while remaining loosely coupled.
+
+**Aggregation Algorithm**:
+The system performs a rolling aggregation of the user's ten most recent inputs. It calculates the mean energy value to derive an "emotional temperature" and determines the dominant "weather condition" (e.g., Sunny, Stormy) based on the frequency of reported emotions and stress levels, which drives the robot’s physical expression.
