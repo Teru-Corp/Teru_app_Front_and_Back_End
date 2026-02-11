@@ -146,7 +146,7 @@ export default function Weather() {
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.actionCard, pressed && { opacity: 0.8 }]}
-            onPress={() => router.push("/(tabs)/garden")}
+            onPress={() => router.push("/(tabs)/garden" as any)}
           >
             <Text style={styles.actionText}>Community</Text>
           </Pressable>
@@ -165,7 +165,7 @@ export default function Weather() {
           <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
             <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
           </Pressable>
-          <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
+          <Pressable onPress={() => router.replace("/(tabs)/garden" as any)} hitSlop={15}>
             <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
           </Pressable>
           <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>

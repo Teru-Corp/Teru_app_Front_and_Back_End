@@ -387,7 +387,7 @@ export default function CommunityGarden() {
                 <Pressable onPress={() => router.replace("/(tabs)/mood_check_in/checkin")} hitSlop={15}>
                     <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
                 </Pressable>
-                <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15} style={{ alignItems: 'center' }}>
+                <Pressable onPress={() => router.replace("/(tabs)/garden" as any)} hitSlop={15} style={{ alignItems: 'center' }}>
                     <GardenIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
                     <View style={styles.activeLine} />
                 </Pressable>

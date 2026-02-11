@@ -160,7 +160,7 @@ export default function EmotionalGardenWeather() {
         router.push({
           pathname: "/(tabs)/garden",
           params: { newWord: communityMsg, animate: "true" }
-        });
+        } as any);
         setTimeout(() => {
           setCommunityMsg("");
           setIsGardening(false);
@@ -349,7 +349,7 @@ export default function EmotionalGardenWeather() {
             </View>
           </Animated.View>
 
-          <Pressable onPress={() => router.push("/(tabs)/garden")} style={styles.teruButton}>
+          <Pressable onPress={() => router.push("/(tabs)/garden" as any)} style={styles.teruButton}>
             <TeruIcon width={60} height={60} />
           </Pressable>
         </View>
@@ -365,10 +365,10 @@ export default function EmotionalGardenWeather() {
           <MoodIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
           <View style={styles.activeLine} />
         </Pressable>
-        <Pressable onPress={() => router.replace("/(tabs)/garden")} hitSlop={15}>
+        <Pressable onPress={() => router.replace("/(tabs)/garden" as any)} hitSlop={15}>
           <WeatherIcon width={28} height={28} fill="rgba(255,255,255,0.8)" />
         </Pressable>
-        <Pressable onPress={() => router.replace("/(tabs)/chat")} hitSlop={15}>
+        <Pressable onPress={() => router.replace("/(tabs)/chat" as any)} hitSlop={15}>
           <ChatIcon width={28} height={28} stroke="white" strokeWidth={1.5} fill="none" />
         </Pressable>
       </View>
