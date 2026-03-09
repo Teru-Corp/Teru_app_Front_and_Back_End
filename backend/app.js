@@ -34,12 +34,12 @@ const Message = mongoose.model('Message', messageSchema);
 // 3) Schéma Mood
 const moodSchema = new Schema({
   utilisateur: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  emotion: { type: String, required: true },
-  energy: { type: Number, required: true },
-  connection: { type: Number, required: true },
-  stress: { type: String, required: true },
-  x: { type: Number }, // Devenu optionnel
-  y: { type: Number }, // Devenu optionnel
+  emotion: { type: String }, // Now optional, replaced by X/Y
+  energy: { type: Number },  // Now optional, replaced by X/Y
+  connection: { type: Number },
+  stress: { type: String },
+  x: { type: Number, required: true }, // Required for new grid system
+  y: { type: Number, required: true }, // Required for new grid system
   date: { type: Date, default: Date.now }
 });
 const Mood = mongoose.model('Mood', moodSchema);
@@ -168,54 +168,52 @@ async function calculateWeather(userId) {
     .limit(10);
 
   if (moods.length === 0) {
-    return { temperature: null, condition: 'Clear', label: 'No Data' };
+    return { temperature: 20, condition: 'Cloudy', label: 'No Data' };
   }
 
-  // 2. Calculate Temperature (Average Energy)
-  let totalEnergy = 0;
-  moods.forEach(m => totalEnergy += (m.energy || 0.5));
-  const avgEnergy = totalEnergy / moods.length;
-  const temperature = Math.round(avgEnergy * 30); // 0-30°C
-
-  // 3. Calculate Condition (Dominant State)
-  let condition = 'Cloudy';
-  let label = 'Neutral';
-
-  let stressCount = 0;
-  let sadCount = 0;
-  let happyCount = 0;
-
+  // 2. Calculate Average Position
+  let totalX = 0;
+  let totalY = 0;
   moods.forEach(m => {
-    if (m.stress === 'overwhelmed' || m.stress === 'stressed') stressCount++;
-    if (m.emotion === 'Sad' || m.emotion === 'Anxious') sadCount++;
-    if (m.emotion === 'Joyful' || m.emotion === 'Energetic') happyCount++;
+    totalX += m.x;
+    totalY += m.y;
   });
+  const avgX = totalX / moods.length;
+  const avgY = totalY / moods.length;
 
-  if (stressCount >= 3) {
-    condition = 'Stormy';
-    label = 'Turbulent';
-  } else if (sadCount >= 3) {
-    condition = 'Rainy';
-    label = 'Gloomy';
-  } else if (happyCount >= 3) {
+  // 3. Map to Weather Condition
+  // X = Feeling (-1 to 1), Y = Energy (-1 to 1)
+  let condition = 'Cloudy';
+  let label = 'Calm';
+
+  if (avgX >= 0 && avgY >= 0) {
     condition = 'Sunny';
     label = 'Radiant';
-  } else {
-    condition = 'Cloudy'; // Default
+  } else if (avgX >= 0 && avgY < 0) {
+    condition = 'Cloudy'; // Or 'Clear'
     label = 'Calm';
+  } else if (avgX < 0 && avgY < 0) {
+    condition = 'Rainy';
+    label = 'Gloomy';
+  } else if (avgX < 0 && avgY >= 0) {
+    condition = 'Stormy';
+    label = 'Turbulent';
   }
 
-  return { temperature, condition, label };
+  // Temperature based on Energy (avgY) mapped from [-1, 1] to [0, 30]
+  const temperature = Math.round(((avgY + 1) / 2) * 30);
+
+  return { temperature, condition, label, avgX, avgY };
 }
 
 // Enregistrer un mood détaillé pour l'utilisateur connecté
 app.post('/mood', verifierToken, async (req, res) => {
   try {
-    const { emotion, energy, connection, stress } = req.body;
+    const { x, y, emotion, energy, connection, stress } = req.body;
 
-    // Validation des nouveaux champs
-    if (!emotion || energy === undefined || connection === undefined || !stress) {
-      return res.status(400).json({ error: 'Les champs emotion, energy, connection et stress sont obligatoires' });
+    // Validation: x and y are now required
+    if (x === undefined || y === undefined) {
+      return res.status(400).json({ error: 'Les coordonnées x et y sont obligatoires' });
     }
 
     const mood = await Mood.create({
@@ -223,26 +221,61 @@ app.post('/mood', verifierToken, async (req, res) => {
       emotion,
       energy,
       connection,
-      stress
+      stress,
+      x,
+      y
     });
 
-    // --- AGGREGATION & ROBOT TRIGGER ---
-    const weather = await calculateWeather(req.userId);
-    console.log(`[APP] New Weather calculated: ${weather.condition}`);
+    // --- COMMUNITY MIRROR (Collective logic) ---
+    // We calculate community stats instead of individual-only trigger
+    const communityWeather = await calculateCommunityWeather();
+    console.log(`[APP] Community Pulse: ${communityWeather.condition}`);
 
-    // Send command to ESP32s
-    robotController.updateRobotExpression(weather);
+    // Update Robot based on Community (if we were to trigger it here)
+    // robotController.updateRobotExpression(communityWeather);
 
     res.status(201).json({
       message: 'Mood enregistré avec succès',
       mood,
-      weather // Optional: send back new weather
+      communityWeather
     });
   } catch (err) {
     console.error('Erreur enregistrement mood :', err);
     res.status(500).json({ error: 'Erreur serveur lors de l’enregistrement du mood' });
   }
 });
+
+// Helper for community aggregation
+async function calculateCommunityWeather() {
+  const ONE_DAY = 24 * 60 * 60 * 1000;
+  const moods = await Mood.find({ date: { $gte: new Date(Date.now() - ONE_DAY) } })
+    .sort({ date: -1 })
+    .limit(100);
+
+  if (moods.length === 0) {
+    return { temperature: 20, condition: 'Cloudy', label: 'Quiet', count: 0 };
+  }
+
+  let totalX = 0;
+  let totalY = 0;
+  moods.forEach(m => {
+    totalX += m.x;
+    totalY += m.y;
+  });
+
+  const avgX = totalX / moods.length;
+  const avgY = totalY / moods.length;
+
+  let condition = 'Cloudy';
+  if (avgX >= 0 && avgY >= 0) condition = 'Sunny';
+  else if (avgX >= 0 && avgY < 0) condition = 'Cloudy';
+  else if (avgX < 0 && avgY < 0) condition = 'Rainy';
+  else if (avgX < 0 && avgY >= 0) condition = 'Stormy';
+
+  const temperature = Math.round(((avgY + 1) / 2) * 30);
+
+  return { temperature, condition, count: moods.length, avgX, avgY };
+}
 
 // Mood global = moyenne de tous les moods
 // Historique des moods
@@ -271,41 +304,8 @@ app.get('/weather-stats', verifierToken, async (req, res) => {
 // Community Weather Stats (All users)
 app.get('/community-weather', async (req, res) => {
   try {
-    const moods = await Mood.find().sort({ date: -1 }).limit(100);
-
-    if (moods.length === 0) {
-      return res.json({ temperature: 20, condition: 'Sunny', label: 'Quiet', count: 0 });
-    }
-
-    let totalEnergy = 0;
-    let counts = { Joyful: 0, Energetic: 0, Calm: 0, Anxious: 0, Sad: 0 };
-    let stressCounts = { peaceful: 0, tense: 0, stressed: 0, overwhelmed: 0 };
-
-    moods.forEach(m => {
-      totalEnergy += (m.energy || 0.5);
-      if (counts[m.emotion] !== undefined) counts[m.emotion]++;
-      if (stressCounts[m.stress] !== undefined) stressCounts[m.stress]++;
-    });
-
-    const avgEnergy = totalEnergy / moods.length;
-    const temperature = Math.round(10 + (avgEnergy * 27));
-
-    // Determine Community Condition
-    const mostCommonEmotion = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
-    const mostCommonStress = Object.keys(stressCounts).reduce((a, b) => stressCounts[a] > stressCounts[b] ? a : b);
-
-    let condition = 'Cloudy';
-    if (['stressed', 'overwhelmed'].includes(mostCommonStress)) condition = 'Stormy';
-    else if (['Sad', 'Anxious'].includes(mostCommonEmotion)) condition = 'Rainy';
-    else if (['Joyful', 'Energetic'].includes(mostCommonEmotion)) condition = 'Sunny';
-
-    res.json({
-      temperature,
-      condition,
-      emotion: mostCommonEmotion,
-      count: moods.length,
-      distribution: counts
-    });
+    const weather = await calculateCommunityWeather();
+    res.json(weather);
   } catch (err) {
     console.error('Erreur community-weather :', err);
     res.status(500).json({ error: 'Erreur serveur pour community-weather' });

@@ -21,8 +21,8 @@ export default function ValidationScreen() {
   const scale = useRef(new Animated.Value(1)).current;
 
   const handleStart = () => {
-    // Navigate to the emotion selection screen (formerly checkin.tsx)
-    router.push("/(tabs)/mood_check_in/emotion_selection");
+    // Navigate to the new 2D grid check-in screen
+    router.push("./grid_checkin");
   };
 
   const pressIn = () => {
