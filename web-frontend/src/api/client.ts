@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Dynamically use the current hostname but port 3000 for the backend.
 // This allows accessing from localhost or the PC's IP address from a phone.
-const API_URL = `http://${window.location.hostname}:3000`;
+// const API_URL = `http://${window.location.hostname}:3000`; // Local
+const API_URL = `https://teru-app-front-and-back-end.onrender.com`; // Live
+
 
 const client = axios.create({
     baseURL: API_URL,
