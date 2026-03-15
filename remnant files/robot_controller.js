@@ -10,9 +10,17 @@ const PORTS = {
 };
 const BAUD_RATE = 115200; // Standard for ESP32
 
+const os = require('os');
+
 const connections = {};
 
 function init() {
+    // Only attempt serial connections if we are likely on the Raspberry Pi (Linux)
+    if (os.platform() !== 'linux') {
+        console.log(`[ROBOT] Skipping real hardware connection (Running on ${os.platform()})`);
+        return;
+    }
+
     Object.keys(PORTS).forEach(key => {
         const path = PORTS[key];
         try {

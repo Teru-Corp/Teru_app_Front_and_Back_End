@@ -289,3 +289,8 @@ Authorization: Bearer VOTRE_TOKEN_ICI
 ```http
 GET http://localhost:3000/mood-global
 ```
+
+***
+
+## 8. Troubleshooting (Windows)
+- **Robot Controller Errors**: If you see errors about `/dev/ttyUSB*` not being found, this is normal on Windows. The robot controller is designed for Linux (Raspberry Pi). The backend will still run and function properly.

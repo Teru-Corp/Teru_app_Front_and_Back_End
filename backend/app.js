@@ -4,12 +4,14 @@ const axios = require('axios');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URL = process.env.MONGODB_URL;
 const { Schema } = mongoose;
 
+app.use(cors());
 app.use(express.json());
 
 
@@ -42,6 +44,11 @@ const moodSchema = new Schema({
   y: { type: Number, required: true }, // Required for new grid system
   date: { type: Date, default: Date.now }
 });
+
+// Performance indexes
+moodSchema.index({ utilisateur: 1, date: -1 });
+moodSchema.index({ date: -1 });
+
 const Mood = mongoose.model('Mood', moodSchema);
 
 // INSCRIPTION
@@ -141,7 +148,7 @@ app.post('/message', verifierToken, async (req, res) => {
   try {
     const messageEnregistre = await Message.create({
       texte: data.texte,
-      utilisateur: req.userId.toString()
+      utilisateur: req.userId ? req.userId.toString() : (data.utilisateur || 'anonyme')
     });
 
     res.json({
@@ -155,10 +162,6 @@ app.post('/message', verifierToken, async (req, res) => {
 });
 
 // Enregistrer un mood (x, y) pour l'utilisateur connecté
-const robotController = require('./robot_controller'); // Import Robot Controller
-
-// Initialisation Robot (Try to connect to USBs)
-robotController.init();
 
 // --- HELPER: Calculate Weather (Aggregation Logic) ---
 async function calculateWeather(userId) {
@@ -232,7 +235,6 @@ app.post('/mood', verifierToken, async (req, res) => {
     console.log(`[APP] Community Pulse: ${communityWeather.condition}`);
 
     // Update Robot based on Community (if we were to trigger it here)
-    // robotController.updateRobotExpression(communityWeather);
 
     res.status(201).json({
       message: 'Mood enregistré avec succès',
