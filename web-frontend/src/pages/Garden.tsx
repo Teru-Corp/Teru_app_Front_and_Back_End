@@ -87,7 +87,7 @@ export default function Garden() {
                     <div key={msg._id} className="garden-message-cloud" style={{ 
                         animationDelay: `${idx * 0.5}s`, 
                         left: idx % 2 === 0 ? '5%' : '75%', 
-                        top: `${35 + (idx % 2) * 7}%` 
+                        top: `${30 + (idx % 2) * 15}%` 
                     }}>
                         <span className="garden-cloud-text">{msg.texte}</span>
                     </div>

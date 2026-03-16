@@ -981,7 +981,7 @@ button {
 }
 
 .garden-collective-viz {
-  margin: 30px 24px;
+  margin: 80px 24px 30px 24px;
   background: rgba(10, 10, 20, 0.85); /* Solid dark background */
   padding: 24px;
   border-radius: 28px;
