@@ -81,10 +81,14 @@ export default function Garden() {
         <div className="garden-container" style={gradientStyle}>
             {renderAtmosphere()}
 
-            {/* Messages Floating in the upper sky */}
+            {/* Messages Floating level with the temperature */}
             <div className="garden-clouds-area">
                 {messages.map((msg, idx) => (
-                    <div key={msg._id} className="garden-message-cloud" style={{ animationDelay: `${idx * 0.5}s`, left: `${10 + (idx % 2) * 40}%`, top: `${5 + (idx % 3) * 10}%` }}>
+                    <div key={msg._id} className="garden-message-cloud" style={{ 
+                        animationDelay: `${idx * 0.5}s`, 
+                        left: idx % 2 === 0 ? '5%' : '75%', 
+                        top: `${35 + (idx % 2) * 7}%` 
+                    }}>
                         <span className="garden-cloud-text">{msg.texte}</span>
                     </div>
                 ))}
