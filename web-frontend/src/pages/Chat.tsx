@@ -3,6 +3,7 @@ import client from '../api/client';
 import TeruIcon from '../assets/icons/icon_teru_face.svg';
 import { useAuth } from '../context/AuthContext';
 import { useCommunityWeather } from '../hooks/useCommunityWeather';
+import { censorWithLove, isRecentMessage } from '../utils/messageFilters';
 
 interface Message {
     _id: string;
@@ -48,7 +49,12 @@ export default function Chat() {
     const fetchMessages = async () => {
         try {
             const response = await client.get('/messages');
-            setMessages(response.data);
+            const recentMsgs = response.data.filter((msg: Message) => isRecentMessage(msg.date));
+            const cleanMsgs = recentMsgs.map((msg: Message) => ({
+                ...msg,
+                texte: censorWithLove(msg.texte)
+            }));
+            setMessages(cleanMsgs);
         } catch (error) {
             console.error('Error fetching messages:', error);
         } finally {

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import client from "../api/client";
 import TeruIcon from "../assets/icons/icon_teru_face.svg";
 import { useCommunityWeather } from "../hooks/useCommunityWeather";
+import { censorWithLove, isRecentMessage } from '../utils/messageFilters';
 
 const IRL_CHALLENGES = [
     { icon: "😊", text: "Smile at three strangers today." },
@@ -26,8 +27,13 @@ export default function Garden() {
     const fetchMessages = async () => {
         try {
             const res = await client.get('/messages');
+            const recentMsgs = res.data.filter((msg: any) => isRecentMessage(msg.date));
+            const cleanMsgs = recentMsgs.map((msg: any) => ({
+                ...msg,
+                texte: censorWithLove(msg.texte)
+            }));
             // Take only the latest 4 messages for the atmosphere clouds
-            const msgs = res.data.slice(0, 4);
+            const msgs = cleanMsgs.slice(0, 4);
             setMessages(msgs);
         } catch (e) {
             console.error("Garden messages error", e);
