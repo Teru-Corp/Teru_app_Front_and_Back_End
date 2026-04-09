@@ -19,16 +19,22 @@ export default function Garden() {
     const navigate = useNavigate();
     const [messages, setMessages] = useState<any[]>([]);
     const { data: communityData, loading: commLoading } = useCommunityWeather();
-
     // Select a rotating daily challenge
     const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
     const dailyChallenge = IRL_CHALLENGES[dayOfYear % IRL_CHALLENGES.length];
 
+    interface MessageType {
+        _id: string;
+        texte: string;
+        utilisateur: string;
+        date: string;
+    }
+
     const fetchMessages = async () => {
         try {
             const res = await client.get('/messages');
-            const recentMsgs = res.data.filter((msg: any) => isRecentMessage(msg.date));
-            const cleanMsgs = recentMsgs.map((msg: any) => ({
+            const recentMsgs = res.data.filter((msg: MessageType) => isRecentMessage(msg.date));
+            const cleanMsgs = recentMsgs.map((msg: MessageType) => ({
                 ...msg,
                 texte: censorWithLove(msg.texte)
             }));
