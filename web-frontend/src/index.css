@@ -300,7 +300,7 @@ button {
 
 .checkin-subtitle {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.6);
   font-weight: 600;
   margin-bottom: 5px;
 }
@@ -308,7 +308,7 @@ button {
 .checkin-title {
   font-size: 28px;
   font-weight: 800;
-  color: #ffffff;
+  color: #000000;
   text-align: center;
   margin-bottom: 10px;
 }
@@ -439,7 +439,7 @@ button {
 
 .grid-label-abs {
   position: absolute;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.6);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -464,7 +464,7 @@ button {
 }
 
 .grid-label {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.6);
   font-size: 12px;
   font-weight: 600;
 }
@@ -695,14 +695,14 @@ button {
 
 .conn-label {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.5);
   max-width: 65px;
   text-align: center;
   transition: all 0.2s;
 }
 
 .conn-label.active {
-  color: #fff;
+  color: #000;
   font-weight: 700;
 }
 
